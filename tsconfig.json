@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "rootDir": "src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+    "outDir": "dist",
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "allowJs": false,
+    "esModuleInterop": false,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "ESNext",
+    "noEmit": true,
+    "skipLibCheck": false,
+    "target": "ESNext",
+    "moduleResolution": "Node"
+  },
+  "include": ["src/**/*", "*.d.ts"],
+  "exclude": ["node_modules"]
+}

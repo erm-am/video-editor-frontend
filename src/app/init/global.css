@@ -1,0 +1,27 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  color: black;
+  font-family: 'Inter';
+  font-style: normal;
+}
+#root {
+  height: 100vh;
+}
+
+:root {
+  --white: #ffffff;
+  --black: #000000;
+  --negative: #ff5a65;
+  --positive: #7fdca4;
+  --primary-color-100: #932852;
+  --secondary-color-100: #ec644f;
+}
