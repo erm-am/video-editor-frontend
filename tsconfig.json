@@ -17,6 +17,6 @@
     "target": "ESNext",
     "moduleResolution": "Node"
   },
-  "include": ["src/**/*", "*.d.ts"],
+  "include": ["src/**/*.ts", "*.d.ts", "src/**/*.tsx"],
   "exclude": ["node_modules"]
 }

@@ -1,0 +1,13 @@
+{
+  "plugins": [
+    [
+      "@emotion",
+      {
+        "sourceMap": true,
+        "autoLabel": "dev-only",
+        "labelFormat": "[dirname]__[filename]_[local]",
+        "cssPropOptimization": false
+      }
+    ]
+  ]
+}

@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set) => ({
     try {
       set({ isLoading: true });
       await sleep(1000);
-      await httpClient.auth.checkAuth();
+      // await httpClient.auth.checkAuth();
       set({ isAuthenticated: true });
     } catch (e) {
       set({ isAuthenticated: false });

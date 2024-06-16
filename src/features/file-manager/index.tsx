@@ -9,11 +9,11 @@ import { Button } from '@/shared/ui/button';
 export const FileManager: React.FC = () => {
   const fileManagerStore = useFileManagerStore();
 
-  useWebSocket('ws://127.0.0.1:4001/ws', (message) => {
-    if (message.type === 'UPLOAD_LIST') {
-      fileManagerStore.updateRegisteredFiles(message.payload);
-    }
-  });
+  // useWebSocket('ws://127.0.0.1:4001/ws', (message) => {
+  //   if (message.type === 'UPLOAD_LIST') {
+  //     fileManagerStore.updateRegisteredFiles(message.payload);
+  //   }
+  // });
 
   return (
     <FileManagerContainer>
