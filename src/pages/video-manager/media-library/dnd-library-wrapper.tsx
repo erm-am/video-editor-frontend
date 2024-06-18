@@ -1,17 +1,14 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
-import { ImageMedia, LibraryElement, Media, VideoMedia } from '../types';
 import styled from '@emotion/styled';
-import { draggable, dropTargetForElements, monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import { attachClosestEdge, Edge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
-import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
+import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { css } from '@emotion/react';
+import { LibraryMediaElement, VideoLibraryMediaElement } from '../model/types';
 
 type DragAndDropWrapperProps = {
   children: ReactNode;
-  media: Media;
+  media: LibraryMediaElement;
 };
-
-export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media }) => {
+export const DndLibraryWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media }) => {
   const refDragAndDropContainer = useRef();
   const [dragging, setDragging] = useState<boolean>(false);
   useEffect(() => {

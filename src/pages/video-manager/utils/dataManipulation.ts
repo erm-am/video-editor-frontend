@@ -10,15 +10,20 @@ export const createTimelineMediaItem = ({
   media: LibraryElement | TimelineElement;
   offset: number;
 }): TimelineElement => {
+  //@ts-ignore
   if (media.container === MediaContainerType.MEDIA_LIBRARY) {
+    //@ts-ignore
     return { ...media, offset, localId: v4(), container: MediaContainerType.TIMELINE };
+    //@ts-ignore
   } else if (media.container === MediaContainerType.TIMELINE) {
+    //@ts-ignore
     return { ...media, offset, container: MediaContainerType.TIMELINE };
   }
 };
 
 // Cоздание нового элемента для MediaLibrary на основе любого Media элемента
 export const createLibraryMediaItem = <T = VideoMedia>(mediaItem: Media, index: number): LibraryElement & T => {
+  //@ts-ignore
   return { ...mediaItem, index, container: MediaContainerType.MEDIA_LIBRARY, changedValues: { duration: { left: 0, right: 0 } } };
 };
 

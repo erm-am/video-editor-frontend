@@ -104,6 +104,7 @@ export const useTimelineStore = create<TimelineState & TimelineActions>((set, ge
     set((state) => {
       const updatedTimelineMediaItems = reorderElement({
         edgePosition: edgePosition,
+        //@ts-ignore
         items: state.mediaItems,
         fromIndex: source.data.index,
         toIndex: target.data.index,
