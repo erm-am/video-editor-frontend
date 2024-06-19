@@ -9,10 +9,11 @@ export const recalculate = ({ items, isMovingToRight, reindexMode }) => {
 };
 
 export const recalculateIndexes = (elements) =>
-  elements.toSorted((a, b) => a.offset - b.offset).map((element, index) => ({ ...element, index }));
+  elements.toSorted((a, b) => a.params.offset - b.params.offset).map((element, index) => ({ ...element, index }));
 export const recalculateValues = (elements) => {
   return elements.map((item) => {
-    return { ...item, size: item.duration + item.changedValues.duration.left + item.changedValues.duration.right };
+    return item;
+    // return { ...item, size: item.duration + item.changedValues.duration.left + item.changedValues.duration.right };
   });
 };
 

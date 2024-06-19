@@ -9,18 +9,18 @@ import { css } from '@emotion/react';
 import { Resizer } from './resizer';
 import { getDragRoute, getElementPosition } from '../utils/dataManipulation';
 import { Button } from '@/shared/ui/button';
-import { TimelineMediaElement } from '../model/types';
+import { MediaParams, TimelineMediaElement } from '../model/types';
 import { VideoTimelineElement } from './video';
 import { createTimelineContainerData, extractEdgePosition } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 import { useThrottle } from '@/shared/hooks/use-throttle';
 
 type TimelineGroupProps = {
-  timelineMediaElements: TimelineMediaElement[];
-  groupIndex: number;
+  elements: (TimelineMediaElement & { params: MediaParams })[];
+  level: number;
 };
 
-export const TimelineGroup: React.FC<TimelineGroupProps> = ({ timelineMediaElements, groupIndex }) => {
+export const TimelineGroup: React.FC<TimelineGroupProps> = ({ elements, level }) => {
   const [edgePosition, setEdgePosition] = useState(null);
   const timelineGroupContainerRef = useRef();
 
@@ -54,7 +54,7 @@ export const TimelineGroup: React.FC<TimelineGroupProps> = ({ timelineMediaEleme
         onDrop: () => setEdgePosition(null),
 
         getData: ({ element, input }) => {
-          return createTimelineContainerData({ groupIndex, element, input });
+          return createTimelineContainerData({ level, element, input });
         },
       }),
     );
@@ -62,11 +62,8 @@ export const TimelineGroup: React.FC<TimelineGroupProps> = ({ timelineMediaEleme
 
   return (
     <TimelineGroupContainer ref={timelineGroupContainerRef}>
-      {timelineMediaElements.map((media, index) => {
-        if (media.type === 'video')
-          return (
-            <VideoTimelineElement disableEdge={!!edgePosition} media={media} index={index} groupIndex={groupIndex} key={media.localId} />
-          );
+      {elements.map((media: TimelineMediaElement & { params: MediaParams }, index) => {
+        if (media.type === 'video') return <VideoTimelineElement media={media} index={index} level={level} key={media.localId} />;
       })}
 
       {edgePosition && <Line edgePosition={edgePosition} />}

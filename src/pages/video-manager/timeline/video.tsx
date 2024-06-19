@@ -4,24 +4,21 @@ import styled from '@emotion/styled';
 import { DragAndDropWrapper } from './drag-and-drop-wrapper';
 import { css } from '@emotion/react';
 import { Button } from '@/shared/ui/button';
-import { TimelineMediaElement } from '../model/types';
+import { MediaParams, TimelineMediaElement } from '../model/types';
 
 type VideoTimelineElementProps = {
-  media: TimelineMediaElement;
-  groupIndex: number;
+  media: TimelineMediaElement & { params: MediaParams };
+  level: number;
   index: number;
-  disableEdge: boolean;
 };
 
-export const VideoTimelineElement: React.FC<VideoTimelineElementProps> = ({ media, groupIndex, index }) => {
+export const VideoTimelineElement: React.FC<VideoTimelineElementProps> = ({ media, level, index }) => {
   return (
-    // <DragAndDropWrapper onRemove={onRemove} onSelect={onSelect}  size=""  media={media} index={index} isActive={isActive}>
-
-    <DragAndDropWrapper media={media} index={index} groupIndex={groupIndex}>
+    <DragAndDropWrapper media={media} index={index} level={level}>
       <VideoTimelineElementContainer>
-        <div>{media.id}</div>
-        <div>{media.duration}</div>
-        <div>{media.localId}</div>
+        <Description>{media.id}</Description>
+        <Description>{media.duration}</Description>
+        <Description>{media.localId}</Description>
       </VideoTimelineElementContainer>
     </DragAndDropWrapper>
   );
@@ -32,4 +29,7 @@ const VideoTimelineElementContainer = styled.div`
   flex-direction: column;
   height: 100px;
   background-color: pink;
+`;
+const Description = styled.div`
+  border: 1px solid black;
 `;

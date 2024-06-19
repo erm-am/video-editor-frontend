@@ -1,80 +1,111 @@
 import { Store, combine, createEffect, createEvent, createStore } from 'effector';
 import { createGate } from 'effector-react';
 import { mediaElementsMockData } from './mock';
-import { ExtractedPayloadDragData, LibraryMediaElement, MediaElement, TimelineMediaElement } from './types';
-
+import { ExtractedPayloadDragData, LibraryMediaElement, MediaElement, MediaParams, TimelineMediaElement } from './types';
 export const MediaLibraryGate = createGate('media library');
 export const TimelineGate = createGate('timeline');
 
 export const getMediaElementsFx = createEffect(() => Promise.resolve(mediaElementsMockData));
-export const $mediaElements = createStore<MediaElement[]>([]); // оригинал  с сервера
-export const $mediaElementsInLibrary: Store<LibraryMediaElement[]> = $mediaElements.map((mediaElement) =>
-  mediaElement.map((mediaElement, index) => ({
-    ...mediaElement,
+export const $libraryElements = createStore<MediaElement[]>([]); // оригинал  с сервера
+export const $libraryElementsWithContainer: Store<LibraryMediaElement[]> = $libraryElements.map((libraryElements) =>
+  libraryElements.map((libraryElement, index) => ({
+    ...libraryElement,
     container: 'library',
     index,
   })),
 );
-
-export const $positionRecords = createStore<{ [name: string]: { offset; width } }>({}); // оригинал  с сервера
-
-export const $mediaElementsInTimeline = createStore<TimelineMediaElement[][]>([]); // Встроенные внутрь timeline
-
-$mediaElements.on(getMediaElementsFx.doneData, (_, mediaLibrary) => {
+$libraryElements.on(getMediaElementsFx.doneData, (_, mediaLibrary) => {
   return mediaLibrary;
 });
+///
+///
+/// UI events
+export const moveLibraryMediaElementToRootContainer = createEvent<ExtractedPayloadDragData>();
+export const moveLibraryMediaElementToTimelineContainer = createEvent<ExtractedPayloadDragData>();
+export const removeMediaElement = createEvent<{ localId: string; level: number }>();
+
+// local events
+// local events
+///
+///
+
+export const updateTimelineElements = createEvent<{
+  timelineElements: (TimelineMediaElement & { params: MediaParams })[];
+  level: number;
+}>();
+export const insertTimlineElement = createEvent<{ mediaElement: TimelineMediaElement & { params: MediaParams }; level: number }>();
+export const resolveCollisions = createEvent<{
+  timelineElementsByLevel: (TimelineMediaElement & { params: MediaParams })[];
+  mediaElement: TimelineMediaElement & { params: MediaParams };
+  level: number;
+  isMovingToRight: boolean;
+  reindexMode: string;
+}>();
+
+export const $timelineElements = createStore<{
+  [level: string]: (TimelineMediaElement & { params: MediaParams })[];
+}>({});
+
+$timelineElements
+  .on(insertTimlineElement, (state, payload) => {
+    const level = payload.level;
+    const mediaElement = payload.mediaElement;
+    if (state[level]) {
+      return { ...state, [level]: [...state[level], mediaElement] };
+    } else {
+      return { ...state, [level]: [mediaElement] };
+    }
+  })
+  .on(updateTimelineElements, (state, payload) => {
+    const level = payload.level;
+    const timelineElements = payload.timelineElements;
+    return { ...state, [level]: timelineElements };
+  })
+  .on(removeMediaElement, (state, payload) => {
+    const localId = payload.localId;
+    const level = payload.level;
+    const updatedElements = state[level].filter((element) => element.localId !== localId);
+    return { ...state, [level]: updatedElements };
+  })
+  .watch((data) => {
+    console.log('_____timelineElements____', data);
+  });
+
+// export const $mediaParams = createStore<{ [name: string]: MediaParams }>({}); // оригинал  с сервера
+// export const $mediaElementsInTimeline = createStore<TimelineMediaElement[][]>([]); // Встроенные внутрь timeline
+// export const $mappedMediaElementsInTimeline = combine($mediaElementsInTimeline, $mediaParams, (mediaElementsInTimeline, mediaParams) => {
+//   return mediaElementsInTimeline.map((group) => {
+//     return group.map((mediaElement) => {
+//       const id = mediaElement.localId;
+//       if (mediaParams[id]) {
+//         return { ...mediaElement, mediaParams: mediaParams[id] };
+//       } else {
+//         return mediaElement;
+//       }
+//     });
+//   });
+// });
 
 //events (from ui)
 // Все виды перемещений в UI
 
-export type MoveDirection =
-  | 'LIBRARY_MEDIA_ELEMENT_TO_ROOT_CONTAINER'
-  | 'LIBRARY_MEDIA_ELEMENT_TO_TIMELINE_CONTAINER'
-  | 'LIBRARY_MEDIA_ELEMENT_TO_TIMELINE_MEDIA_ELEMENT'
-  | 'TIMELINE_MEDIA_ELEMENT_TO_TIMLINE_CONTAINER'
-  | 'TIMELINE_MEDIA_ELEMENT_TO_TIMELINE_MEDIA_ELEMENT';
-
-export const moveMediaElement = createEvent<{ data: ExtractedPayloadDragData; moveDirection: MoveDirection }>();
-
-export const movelibraryMediaElementToRootContainer = createEvent<ExtractedPayloadDragData>();
-export const movelibraryMediaElementToTimelineContainer = createEvent<ExtractedPayloadDragData>();
-export const movelibraryMediaElementToTimelineMediaElement = createEvent<ExtractedPayloadDragData>();
-export const movetimelineMediaElementToTimelineContainer = createEvent<ExtractedPayloadDragData>();
-export const movetimelineMediaElementToTimelineMediaElement = createEvent<ExtractedPayloadDragData>();
-
-//events
-export const insertMediaElementIntoRootContainer = createEvent<{
-  medialement: TimelineMediaElement;
-}>();
-
-export const insertMediaElementIntoTimelineContainer = createEvent<{
-  mediaElement: TimelineMediaElement;
-}>();
-
-$mediaElementsInTimeline;
-// .on(insertMediaElementIntoRootContainer, (_, payload) => {
-//   return [[payload.createdElement]];
-// })
-// .on(insertMediaElementIntoTimelineContainer, (state, payload) => {
-//   console.log('ДОБАВЛЯЕМ', payload);
-//   state[payload.groupIndex].push(payload.createdElement);
-//   return [...state];
-// });
-
-$mediaElementsInTimeline.watch((mediaElementsInTimeline) => {
-  console.log('mediaElementsInTimeline', mediaElementsInTimeline);
-});
-
-//
-//
-//
-
-$mediaElementsInLibrary.watch((mediaLibrary) => {
-  console.log('libraryMediaElements', mediaLibrary);
-});
-$positionRecords.watch((positionRecords) => {
-  console.log('positionRecords', positionRecords);
-});
-insertMediaElementIntoTimelineContainer.watch((data) => {
-  console.log('insertMediaElementIntoTimelineContainer', data);
-});
+// $mediaElementsInTimeline
+//   .on(insertMediaElement, (state, payload) => {
+//     const mediaElement = payload.mediaElement;
+//     const level = payload.params.level;
+//     const updatedState = [...state];
+//     if (updatedState[level]) {
+//       updatedState[level].push(mediaElement);
+//     } else {
+//       updatedState[level] = [mediaElement];
+//     }
+//     return updatedState;
+//   })
+//   .on(removeMediaElement, (state, { localId, level }) => {
+//     return state.map((group, index) => {
+//       return index === level ? group.filter((media) => media.localId !== localId) : group;
+//     });
+//   })
+//   .watch((data) => {
+//     console.log('!!! $mediaElementsInTimeline !!!', data);
+//   });

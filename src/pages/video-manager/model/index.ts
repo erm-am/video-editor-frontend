@@ -1,67 +1,64 @@
-import { sample } from 'effector';
+import { createEvent, sample, split } from 'effector';
 import { v4 } from 'uuid';
 import {
-  $mediaElementsInTimeline,
-  $positionRecords,
+  $timelineElements,
   MediaLibraryGate,
   getMediaElementsFx,
-  insertMediaElementIntoRootContainer,
-  insertMediaElementIntoTimelineContainer,
-  movelibraryMediaElementToRootContainer,
+  insertTimlineElement,
+  moveLibraryMediaElementToRootContainer,
+  moveLibraryMediaElementToTimelineContainer,
+  resolveCollisions,
+  updateTimelineElements,
 } from './model.effector';
-import { calculateOffsetFromContainerStart, createTimelineMediaElement } from './utils';
-import { calculateOffsetForMediaLibraryToTimelineDrag } from '../utils/calculations';
+import { calculateOffsetFromContainerStart, createTimelineMediaElement, getDragRoute } from './utils';
+import { calculateOffsetForMediaLibraryToTimelineDrag, recalculate } from '../utils/calculations';
+import { useOnClickOutside } from '@/shared/hooks/use-on-click-outside';
+import { MediaParams, TimelineMediaElement } from './types';
 
 sample({
   clock: MediaLibraryGate.open,
   target: getMediaElementsFx,
 });
 
-//добавление первого элемента
+//library.media -> root
+//library.media -> timeline
 sample({
   source: {
-    mediaElementsInTimeline: $mediaElementsInTimeline,
+    timelineElements: $timelineElements,
   },
-  clock: movelibraryMediaElementToRootContainer,
-  filter: ({ mediaElementsInTimeline }, payload) => {
-    return mediaElementsInTimeline.length === 0;
-  },
-  fn({ mediaElementsInTimeline }, payload) {
-    const isEmpty = mediaElementsInTimeline.length === 0;
+  clock: [moveLibraryMediaElementToRootContainer, moveLibraryMediaElementToTimelineContainer],
+
+  fn({ timelineElements }, payload) {
     const mediaElement = createTimelineMediaElement(payload.source.data);
+    const isMovingToRight = payload.isMovingToRight;
     const offset = calculateOffsetFromContainerStart(payload);
-    const mediaProperties = {
+    const level = (payload.target.data.level as number) ?? 0;
+    const params = {
       offset: offset,
       width: mediaElement.duration,
     };
-    console.log('mediaProperties', mediaProperties);
-    return { mediaElement, mediaProperties };
+
+    const timelineElementsByLevel = timelineElements[level] ?? [];
+    const mediaElementWitchParams = { ...mediaElement, params };
+    const updatedElementsByLevel = timelineElementsByLevel.concat(mediaElementWitchParams);
+    return {
+      timelineElementsByLevel: updatedElementsByLevel,
+      mediaElement: mediaElementWitchParams,
+      level,
+      isMovingToRight,
+      reindexMode: 'before',
+    };
   },
-  target: insertMediaElementIntoTimelineContainer,
+  target: resolveCollisions,
 });
 
-// sample({
-//   clock: createPositionRecord,
-//   fn(payload) {
-//     return payload;
-//   },
-//   target: calculateOffset,
-// });
-
-// sample({
-//   source: {
-//     mediaElementsInTimeline: $mediaElementsInTimeline,
-//   },
-//   clock: libraryMediaElementToTimelineContainer,
-//   filter: ({ mediaElementsInTimeline }, payload) => {
-//     return mediaElementsInTimeline.length > 0;
-//   },
-//   fn({ mediaElementsInTimeline }, payload) {
-//     const { target, source, inputs, targets } = payload;
-//     const groupIndex = target.data.groupIndex;
-//     const offset = calculateOffsetForMediaLibraryToTimelineDrag({ target: targets.timeline, source, inputs });
-//     const created = createTimelineMediaElement(payload.source.data);
-//     return { createdElement: created, groupIndex: groupIndex as number, offset: offset as number };
-//   },
-//   target: createPositionRecord,
-// });
+sample({
+  clock: resolveCollisions,
+  fn(payload) {
+    const { timelineElementsByLevel, level, isMovingToRight, reindexMode } = payload;
+    const resolvedElementsByLevel = recalculate({ items: timelineElementsByLevel, isMovingToRight, reindexMode });
+    console.log('resolvedElementsByLevel,resolvedElementsByLevel', resolvedElementsByLevel);
+    return { timelineElements: resolvedElementsByLevel, level };
+  },
+  target: updateTimelineElements,
+});

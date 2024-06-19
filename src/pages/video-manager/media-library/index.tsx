@@ -3,14 +3,14 @@ import styled from '@emotion/styled';
 
 import { VideoLibraryElement } from './video';
 import { useGate, useUnit } from 'effector-react';
-import { $mediaElementsInLibrary, MediaLibraryGate } from '../model/model.effector';
+import { $libraryElementsWithContainer, MediaLibraryGate } from '../model/model.effector';
 
 export const MediaLibrary = () => {
   useGate(MediaLibraryGate);
-  const mediaElementsInLibrary = useUnit($mediaElementsInLibrary);
+  const libraryElementsWithContainer = useUnit($libraryElementsWithContainer);
   return (
     <MediaLibraryContainer>
-      {mediaElementsInLibrary.map((media) => {
+      {libraryElementsWithContainer.map((media) => {
         if (media.type === 'video') return <VideoLibraryElement key={media.id} media={media} />;
         return <div key={media.id}>UNKNOWN_MEDIA_ELEMENT</div>;
       })}

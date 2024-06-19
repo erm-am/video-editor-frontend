@@ -64,3 +64,8 @@ export type ExtractedPayloadDragData = {
     root: DropTargetRecord | {};
   };
 };
+
+export type MediaParams = {
+  width: number;
+  offset: number;
+};

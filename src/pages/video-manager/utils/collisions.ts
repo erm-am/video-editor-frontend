@@ -3,7 +3,7 @@ import { Collision } from '../types';
 const detectNegativeOffset = (elements) => {
   // Поиск коллизий (отрицательная позиция первого элемента)
   let collisions = [];
-  if (elements.at(0).offset < 0) {
+  if (elements.at(0).params.offset < 0) {
     collisions.push({ type: 'NEGATIVE_LEFT_OFFSET', indexes: [0, -1] });
   }
   return collisions;
@@ -13,8 +13,8 @@ const detectOverlapCollisions = (elements) => {
   // Поиск коллизий (две элемента на одной позиции)
   let collisions = [];
   for (let i = 0; i < elements.length - 1; i++) {
-    let currentElementEnd = elements[i].offset + elements[i].size;
-    let nextElementStart = elements[i + 1].offset;
+    let currentElementEnd = elements[i].params.offset + elements[i].params.width;
+    let nextElementStart = elements[i + 1].params.offset;
     if (currentElementEnd > nextElementStart) {
       collisions.push({ type: 'OVERLAP', indexes: [i, i + 1] });
     }
@@ -34,15 +34,15 @@ const resolveCollisions = ({ items, isMovingToRight }) => {
     for (const collision of collisions) {
       const [leftIndex, rightIndex] = collision.indexes;
       if (collision.type == 'NEGATIVE_LEFT_OFFSET') {
-        items[leftIndex].offset = 0; // Возвращаем элемент в самое начало контейнера
+        items[leftIndex].params.offset = 0; // Возвращаем элемент в самое начало контейнера
         isMovingToRight = true; // Меняем направление "волны" (проверяем коллизии в противоположную сторону)
       } else if (collision.type === 'OVERLAP') {
-        const currentElementEnd = items[leftIndex].offset + items[leftIndex].size;
-        const nextElementStart = items[rightIndex].offset;
+        const currentElementEnd = items[leftIndex].params.offset + items[leftIndex].params.width;
+        const nextElementStart = items[rightIndex].params.offset;
         if (isMovingToRight) {
-          items[rightIndex].offset = currentElementEnd;
+          items[rightIndex].params.offset = currentElementEnd;
         } else {
-          items[leftIndex].offset = nextElementStart - items[leftIndex].size;
+          items[leftIndex].params.offset = nextElementStart - items[leftIndex].params.width;
         }
       }
     }

@@ -9,22 +9,19 @@ import { css } from '@emotion/react';
 import { Resizer } from './resizer';
 
 import { Button } from '@/shared/ui/button';
-import { TimelineMediaElement } from '../model/types';
+import { MediaParams, TimelineMediaElement } from '../model/types';
 import { createTimelineContainerData, extractEdgePosition, getDragRoute, getElementPosition } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
+import { removeMediaElement } from '../model/model.effector';
 
 type DragAndDropWrapperProps = {
   children: ReactNode;
-  media: TimelineMediaElement;
+  media: TimelineMediaElement & { params: MediaParams };
   index: number;
-  groupIndex: number;
-
-  // isActive: boolean;
-  // onSelect: (localId: string) => void;
-  // onRemove: (localId: string) => void;
+  level: number;
 };
 
-export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media, index, groupIndex }) => {
+export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media, index, level }) => {
   const refDragAndDropContainer = useRef();
   const [edgePosition, setEdgePosition] = useState(null);
   const [dragging, setDragging] = useState(null);
@@ -35,7 +32,7 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
         element: refDragAndDropContainer.current,
         onDragStart: () => setDragging(true),
         onDrop: () => setDragging(false),
-        getInitialData: () => ({ ...media, index }),
+        getInitialData: () => ({ ...media, level, index }),
       }),
 
       dropTargetForElements({
@@ -63,7 +60,7 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
         onDragLeave: () => setEdgePosition(null),
         onDrop: () => setEdgePosition(null),
         getData: ({ input, element }) => {
-          return createTimelineContainerData({ ...media, index, groupIndex, input, element });
+          return createTimelineContainerData({ ...media, index, level, input, element });
         },
       }),
     );
@@ -71,33 +68,31 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
 
   return (
     <DragAndDropContainer
-      // data-id={media.localId}
-      // offset={media.offset}
-      // dragging={dragging}
-      // onClick={() => onSelect(media.localId)}
+      data-id={media.localId}
+      offset={media.params.offset}
+      width={media.params.width}
+      dragging={dragging}
       ref={refDragAndDropContainer}
     >
       {edgePosition && <Line edgePosition={edgePosition} />}
       {children}
       {/* <Resizer isActive={isActive} media={media} />
-      <Remove onClick={() => onRemove(media.localId)}>remove</Remove> */}
+       */}
+      <Remove onClick={() => removeMediaElement({ localId: media.localId, level })}>remove</Remove>
     </DragAndDropContainer>
   );
 };
 
-// const DragAndDropContainer = styled.div<{ dragging: boolean; offset: number }>`
-//   background: gray;
-//   position: absolute;
-//   left: ${(props) => props.offset}px;
-//   ${(props) =>
-//     props.dragging &&
-//     css`
-//       opacity: 0.3;
-//     `}
-// `;
-const DragAndDropContainer = styled.div`
+const DragAndDropContainer = styled.div<{ offset: number; width: number; dragging: boolean }>`
   background: gray;
   position: absolute;
+  width: ${(props) => props.width}px;
+  left: ${(props) => props.offset}px;
+  ${(props) =>
+    props.dragging &&
+    css`
+      opacity: 0.3;
+    `}
 `;
 
 const Line = styled.div<{ edgePosition: 'left' | 'right' }>`
