@@ -7,19 +7,24 @@ import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
 import { css } from '@emotion/react';
 
 import { Resizer } from './resizer';
-import { getDragRoute, getElementPosition } from '../utils/dataManipulation';
+
 import { Button } from '@/shared/ui/button';
+import { TimelineMediaElement } from '../model/types';
+import { createTimelineContainerData, extractEdgePosition, getDragRoute, getElementPosition } from '../model/utils';
+import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 
 type DragAndDropWrapperProps = {
   children: ReactNode;
-  media: TimelineElement;
+  media: TimelineMediaElement;
   index: number;
-  isActive: boolean;
-  onSelect: (localId: string) => void;
-  onRemove: (localId: string) => void;
+  groupIndex: number;
+
+  // isActive: boolean;
+  // onSelect: (localId: string) => void;
+  // onRemove: (localId: string) => void;
 };
 
-export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media, index, isActive, onSelect, onRemove }) => {
+export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media, index, groupIndex }) => {
   const refDragAndDropContainer = useRef();
   const [edgePosition, setEdgePosition] = useState(null);
   const [dragging, setDragging] = useState(null);
@@ -39,57 +44,60 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
           const source = eventPayload.source;
           const target = eventPayload.self;
           const currentDragRoute = getDragRoute({ source, target });
-          const edgePosition = extractClosestEdge(target.data);
-          if (currentDragRoute.from === 'MEDIA_LIBRARY.VIDEO' && currentDragRoute.to === 'TIMELINE.VIDEO') {
-            setEdgePosition(edgePosition);
-          } else if (currentDragRoute.from === 'TIMELINE.VIDEO' && currentDragRoute.to === 'TIMELINE.VIDEO') {
+          const edgePosition = extractEdgePosition(target.data as { element: Element; input: Input });
+          if (currentDragRoute.from === 'library.video' && currentDragRoute.to === 'timeline.video') {
+            if (edgePosition.horizontal > 95 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+              setEdgePosition('right');
+            } else if (edgePosition.horizontal < 5 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+              setEdgePosition('left');
+            } else {
+              setEdgePosition(null);
+            }
+          } else if (currentDragRoute.from === 'timeline.video' && currentDragRoute.to === 'timeline.video') {
             const { isSelf, isNear } = getElementPosition({ from: source.data, to: target.data, edgePosition });
             if (!isSelf && !isNear) {
-              setEdgePosition(edgePosition);
+              //  setEdgePosition(edgePosition); // todo
             }
           }
         },
         onDragLeave: () => setEdgePosition(null),
         onDrop: () => setEdgePosition(null),
         getData: ({ input, element }) => {
-          return attachClosestEdge(
-            { ...media, index },
-            {
-              element,
-              input,
-              allowedEdges: ['left', 'right'],
-            },
-          );
+          return createTimelineContainerData({ ...media, index, groupIndex, input, element });
         },
       }),
     );
-  }, [index]);
+  }, []);
 
   return (
     <DragAndDropContainer
-      data-id={media.localId}
-      offset={media.offset}
-      dragging={dragging}
-      onClick={() => onSelect(media.localId)}
+      // data-id={media.localId}
+      // offset={media.offset}
+      // dragging={dragging}
+      // onClick={() => onSelect(media.localId)}
       ref={refDragAndDropContainer}
     >
       {edgePosition && <Line edgePosition={edgePosition} />}
       {children}
-      <Resizer isActive={isActive} media={media} />
-      <Remove onClick={() => onRemove(media.localId)}>remove</Remove>
+      {/* <Resizer isActive={isActive} media={media} />
+      <Remove onClick={() => onRemove(media.localId)}>remove</Remove> */}
     </DragAndDropContainer>
   );
 };
 
-const DragAndDropContainer = styled.div<{ dragging: boolean; offset: number }>`
+// const DragAndDropContainer = styled.div<{ dragging: boolean; offset: number }>`
+//   background: gray;
+//   position: absolute;
+//   left: ${(props) => props.offset}px;
+//   ${(props) =>
+//     props.dragging &&
+//     css`
+//       opacity: 0.3;
+//     `}
+// `;
+const DragAndDropContainer = styled.div`
   background: gray;
   position: absolute;
-  left: ${(props) => props.offset}px;
-  ${(props) =>
-    props.dragging &&
-    css`
-      opacity: 0.3;
-    `}
 `;
 
 const Line = styled.div<{ edgePosition: 'left' | 'right' }>`
@@ -103,7 +111,14 @@ const Line = styled.div<{ edgePosition: 'left' | 'right' }>`
     props.edgePosition === 'right' &&
     css`
       background-color: red;
-      right: -2px;
+      right: 0;
+    `}
+
+  ${(props) =>
+    props.edgePosition === 'left' &&
+    css`
+      background-color: blue;
+      left: 0;
     `}
 `;
 

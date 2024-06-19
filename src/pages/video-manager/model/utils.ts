@@ -9,6 +9,13 @@ export const createTimelineMediaElement = (element): TimelineMediaElement => {
   return { ...element, localId: v4(), container: 'timeline' };
 };
 
+export const createRootContainerData = (data) => {
+  return { ...data, container: 'root' };
+};
+export const createTimelineContainerData = (data) => {
+  return { ...data, container: 'timeline' };
+};
+
 // // Cоздание нового элемента для Timeline на основе любого Media элемента
 // export const createTimelineMediaItem = ({
 //   media,
@@ -48,10 +55,12 @@ export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDra
     element: eventPayload?.source?.element ?? {},
   };
 
-  // const targets = {
-  //   timeline: eventPayload.location.current.dropTargets.find((item) => !item.data?.type && item.data?.container === 'TIMELINE') ?? {},
-  //   media: eventPayload.location.current.dropTargets.find((item) => item.data?.type && item.data?.container === 'TIMELINE') ?? {},
-  // };
+  const targets = {
+    timeline: eventPayload.location.current.dropTargets.find((item) => !item.data?.type && item.data?.container === 'timeline') ?? {},
+    media: eventPayload.location.current.dropTargets.find((item) => item.data?.type && item.data?.container === 'timeline') ?? {},
+    library: eventPayload.location.current.dropTargets.find((item) => item.data?.type && item.data?.container === 'library') ?? {},
+    root: eventPayload.location.current.dropTargets.find((item) => !item.data?.type && item.data?.container === 'root') ?? {},
+  };
   // const edgePosition = targets.media?.data ? extractClosestEdge(targets.media.data) : null;
   const inputs = {
     initial: eventPayload.location.initial.input,
@@ -61,7 +70,7 @@ export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDra
   return {
     source,
     target: topDropTarget,
-    // targets,
+    targets,
     // edgePosition,
     inputs,
     isMovingToRight: inputs.current.clientX > inputs.initial.clientX,
@@ -113,17 +122,42 @@ export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDra
 // };
 
 // // Расположение элемента относительно соседних элементов
-// export const getElementPosition = ({ from, to, edgePosition }) => {
-//   const isTargetAfterSource = from.index === (to.index as number) - 1;
-//   const isTargetBeforeSource = from.index === (to.index as number) + 1;
-//   const isSelf = from.index === to.index;
-//   const isNear = (isTargetBeforeSource && edgePosition === 'right') || (isTargetAfterSource && edgePosition === 'left');
-//   return { isTargetAfterSource, isTargetBeforeSource, isSelf, isNear };
-// };
+export const getElementPosition = ({ from, to, edgePosition }) => {
+  const isTargetAfterSource = from.index === (to.index as number) - 1;
+  const isTargetBeforeSource = from.index === (to.index as number) + 1;
+  const isSelf = from.index === to.index;
+  const isNear = (isTargetBeforeSource && edgePosition === 'right') || (isTargetAfterSource && edgePosition === 'left');
+  return { isTargetAfterSource, isTargetBeforeSource, isSelf, isNear };
+};
 
 export const getDragRoute = ({ source, target }) => {
   // Перевод "dnd-роута" в текстовое представление
   const from = [source?.data?.container, source?.data?.type, source?.data?.action].filter(Boolean).join('.');
   const to = [target?.data?.container, target?.data?.type, target?.data?.action].filter(Boolean).join('.');
   return { from, to };
+};
+
+export const extractEdgePosition = (data: { element: Element; input: Input }) => {
+  // Переписал под себя эту функцию https://github.com/atlassian/pragmatic-drag-and-drop/blob/93227931c45f69c0a51da7e021f73cc79319b6ed/packages/hitbox/src/closest-edge.ts
+  const element = data.element;
+  const input = data.input;
+  const rect = element.getBoundingClientRect();
+  const client = {
+    x: input.clientX,
+    y: input.clientY,
+  };
+  return {
+    vertical: Math.round(100 / (rect.height / Math.abs(rect.bottom - client.y))),
+    horizontal: Math.round(100 / (rect.width / Math.abs(client.x - rect.left))),
+  };
+};
+
+export const calculateOffsetFromContainerStart = ({ source, target, inputs }) => {
+  const sourceLeft = source?.element.getBoundingClientRect().left;
+  const targetLeft = target?.element.getBoundingClientRect().left;
+  const currentX = inputs.current.clientX;
+  const initialX = inputs.initial.clientX;
+  const moveDistance = currentX - initialX;
+  const offset = moveDistance + (sourceLeft - targetLeft);
+  return offset;
 };

@@ -16,6 +16,8 @@ export const $mediaElementsInLibrary: Store<LibraryMediaElement[]> = $mediaEleme
   })),
 );
 
+export const $positionRecords = createStore<{ [name: string]: { offset; width } }>({}); // оригинал  с сервера
+
 export const $mediaElementsInTimeline = createStore<TimelineMediaElement[][]>([]); // Встроенные внутрь timeline
 
 $mediaElements.on(getMediaElementsFx.doneData, (_, mediaLibrary) => {
@@ -23,18 +25,42 @@ $mediaElements.on(getMediaElementsFx.doneData, (_, mediaLibrary) => {
 });
 
 //events (from ui)
-export const libraryMediaElementToRootContainer = createEvent<ExtractedPayloadDragData>();
-export const libraryMediaElementToTimelineContainer = createEvent<ExtractedPayloadDragData>();
-export const libraryMediaElementToTimelineMediaElement = createEvent<ExtractedPayloadDragData>();
-export const timelineMediaElementToTimelineContainer = createEvent<ExtractedPayloadDragData>();
-export const timelineMediaElementToTimelineMediaElement = createEvent<ExtractedPayloadDragData>();
+// Все виды перемещений в UI
+
+export type MoveDirection =
+  | 'LIBRARY_MEDIA_ELEMENT_TO_ROOT_CONTAINER'
+  | 'LIBRARY_MEDIA_ELEMENT_TO_TIMELINE_CONTAINER'
+  | 'LIBRARY_MEDIA_ELEMENT_TO_TIMELINE_MEDIA_ELEMENT'
+  | 'TIMELINE_MEDIA_ELEMENT_TO_TIMLINE_CONTAINER'
+  | 'TIMELINE_MEDIA_ELEMENT_TO_TIMELINE_MEDIA_ELEMENT';
+
+export const moveMediaElement = createEvent<{ data: ExtractedPayloadDragData; moveDirection: MoveDirection }>();
+
+export const movelibraryMediaElementToRootContainer = createEvent<ExtractedPayloadDragData>();
+export const movelibraryMediaElementToTimelineContainer = createEvent<ExtractedPayloadDragData>();
+export const movelibraryMediaElementToTimelineMediaElement = createEvent<ExtractedPayloadDragData>();
+export const movetimelineMediaElementToTimelineContainer = createEvent<ExtractedPayloadDragData>();
+export const movetimelineMediaElementToTimelineMediaElement = createEvent<ExtractedPayloadDragData>();
 
 //events
-export const insertMediaElementIntoRootContainer = createEvent<TimelineMediaElement>();
+export const insertMediaElementIntoRootContainer = createEvent<{
+  medialement: TimelineMediaElement;
+}>();
 
-$mediaElementsInTimeline.on(insertMediaElementIntoRootContainer, (_, payload) => {
-  return [[payload]];
-});
+export const insertMediaElementIntoTimelineContainer = createEvent<{
+  mediaElement: TimelineMediaElement;
+}>();
+
+$mediaElementsInTimeline;
+// .on(insertMediaElementIntoRootContainer, (_, payload) => {
+//   return [[payload.createdElement]];
+// })
+// .on(insertMediaElementIntoTimelineContainer, (state, payload) => {
+//   console.log('ДОБАВЛЯЕМ', payload);
+//   state[payload.groupIndex].push(payload.createdElement);
+//   return [...state];
+// });
+
 $mediaElementsInTimeline.watch((mediaElementsInTimeline) => {
   console.log('mediaElementsInTimeline', mediaElementsInTimeline);
 });
@@ -43,9 +69,12 @@ $mediaElementsInTimeline.watch((mediaElementsInTimeline) => {
 //
 //
 
-$mediaElements.watch((mediaLibrary) => {
-  console.log('mediaLibrary', mediaLibrary);
-});
 $mediaElementsInLibrary.watch((mediaLibrary) => {
   console.log('libraryMediaElements', mediaLibrary);
+});
+$positionRecords.watch((positionRecords) => {
+  console.log('positionRecords', positionRecords);
+});
+insertMediaElementIntoTimelineContainer.watch((data) => {
+  console.log('insertMediaElementIntoTimelineContainer', data);
 });

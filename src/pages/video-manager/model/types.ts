@@ -39,7 +39,7 @@ export type VideoTimelineMediaElement = MediaContainerBase<VideoMedia, 'timeline
 export type AudioTimelineMMediaElement = MediaContainerBase<AudioMedia, 'timeline'> & { localId: string };
 
 export type LibraryMediaElement = VideoLibraryMediaElement | AudioLibraryMediaElement;
-export type TimelineMediaElement = VideoLibraryMediaElement | AudioLibraryMediaElement;
+export type TimelineMediaElement = VideoTimelineMediaElement | AudioTimelineMMediaElement;
 
 //
 
@@ -57,4 +57,10 @@ export type ExtractedPayloadDragData = {
     current: Input;
   };
   isMovingToRight: boolean;
+  targets: {
+    timeline: DropTargetRecord | {};
+    media: DropTargetRecord | {};
+    library: DropTargetRecord | {};
+    root: DropTargetRecord | {};
+  };
 };

@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import { VideoTimelineElement } from './video';
 import { useTimeline } from './useTimeline';
-import { $mediaElementsInTimeline, TimelineGate, libraryMediaElementToRootContainer } from '../model/model.effector';
+import { $mediaElementsInTimeline, TimelineGate, moveMediaElement, movelibraryMediaElementToRootContainer } from '../model/model.effector';
 import { useGate, useUnit } from 'effector-react';
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { autoScrollForElements } from '@atlaskit/pragmatic-drag-and-drop-auto-scroll/element';
@@ -10,7 +10,8 @@ import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
 import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { extractData, getElementPosition } from '../utils/dataManipulation';
 import { ElementDragPayload, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
-import { extractPayloadDragData, getDragRoute } from '../model/utils';
+import { createRootContainerData, extractPayloadDragData, getDragRoute } from '../model/utils';
+import { TimelineGroup } from './group';
 
 type RootContainerData = {
   container: 'root';
@@ -19,13 +20,9 @@ type RootContainerData = {
   source: ElementDragPayload;
 };
 
-const createRootContainerData = (data) => {
-  return { ...data, container: 'root' };
-};
 export const Timeline = () => {
   useGate(TimelineGate);
   const mediaElementsInLibrary = useUnit($mediaElementsInTimeline);
-
   const timelineMainContainerRef = useRef();
   useEffect(() => {
     return combine(
@@ -38,10 +35,20 @@ export const Timeline = () => {
       monitorForElements({
         onDrop(payload) {
           const extractedDragData = extractPayloadDragData(payload);
+          console.log('extractedDragData', extractedDragData);
           const currentDragRoute = getDragRoute({ source: extractedDragData.source, target: extractedDragData.target });
+          console.log('currentDragRoute', currentDragRoute);
           if (currentDragRoute.from === 'library.video' && currentDragRoute.to === 'root') {
             console.info('Перенесли элемент из Library.* в root контейнер (пустой контейнер)');
-            libraryMediaElementToRootContainer(extractedDragData);
+
+            moveMediaElement({ data: extractedDragData, moveDirection: 'LIBRARY_MEDIA_ELEMENT_TO_ROOT_CONTAINER' });
+            // const id = moveLibraryMediaElementToRootContainer(extractedDragData);
+            // Перемещение на пустую область timline
+            //  timelineStore.moveMediaLibraryToTimeline({ source, inputs, targets, isMovingToRight });
+          }
+          if (currentDragRoute.from === 'library.video' && currentDragRoute.to === 'timeline') {
+            console.info('Перенесли элемент из Library.* в root контейнер (пустой контейнер)');
+            //moveLibraryMediaElementToRootContainer(extractedDragData);
             // Перемещение на пустую область timline
             //  timelineStore.moveMediaLibraryToTimeline({ source, inputs, targets, isMovingToRight });
           }
@@ -52,6 +59,9 @@ export const Timeline = () => {
 
   return (
     <TimelineMainContainer ref={timelineMainContainerRef}>
+      {mediaElementsInLibrary.map((timelineMediaElements, index) => {
+        return <TimelineGroup key={index} groupIndex={index} timelineMediaElements={timelineMediaElements} />;
+      })}
       {/* {mediaItems.map((media, index) => {
         const isActive = media.localId === selectedId;
         if (media.type === 'VIDEO') {
@@ -74,7 +84,7 @@ export const Timeline = () => {
 
 const TimelineMainContainer = styled.div`
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   width: 800px;
   height: 400px;
   overflow: auto;
