@@ -1,20 +1,20 @@
 import React from 'react';
-import { LibraryElement, VideoMedia } from '../types';
 import styled from '@emotion/styled';
-import { DragAndDropWrapper } from './drag-and-drop-wrapper';
+import { DndLibraryWrapper } from './dnd-library-wrapper';
+import { LibraryElement } from '../model/types';
 
 type VideoLibraryElementProps = {
-  media: VideoMedia & LibraryElement;
+  media: LibraryElement;
 };
 export const VideoLibraryElement: React.FC<VideoLibraryElementProps> = ({ media }) => {
   return (
-    <DragAndDropWrapper media={media}>
+    <DndLibraryWrapper media={media}>
       <VideoLibraryElementContainer>
-        <div>{media.id}</div>
-        <div>{media.type}</div>
-        <div>{media.duration}</div>
+        <Description>{media.id}</Description>
+        <Description>{media.type}</Description>
+        <Description>{media.duration}</Description>
       </VideoLibraryElementContainer>
-    </DragAndDropWrapper>
+    </DndLibraryWrapper>
   );
 };
 
@@ -24,4 +24,7 @@ const VideoLibraryElementContainer = styled.div`
   width: 100px;
   height: 100px;
   background-color: pink;
+`;
+const Description = styled.div`
+  color: gray;
 `;

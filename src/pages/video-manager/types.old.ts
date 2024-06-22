@@ -1,11 +1,11 @@
 import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import { ElementParams, TimelineElement } from './model/types';
 export type MediaType = 'VIDEO' | 'AUDIO' | 'IMAGE' | 'TEXT';
 
 export enum MediaContainerType {
   MEDIA_LIBRARY = 'MEDIA_LIBRARY',
   TIMELINE = 'TIMELINE',
 }
-
 type MediaBase = {
   id: string;
   type: MediaType;
@@ -44,15 +44,17 @@ export type TimelineElement = Media & {
   index?: number;
   offset: number;
   localId: string;
-  container: MediaContainerType.TIMELINE;
+  container: 'timeline';
 };
 export type LibraryElement = Media & {
   index: number;
-  container: MediaContainerType.MEDIA_LIBRARY;
+  container: 'library';
 };
 
 export type ReorderOptions = {
-  items: (VideoMedia & TimelineElement)[]; //todo
+  items: (TimelineElement & {
+    params: ElementParams;
+  })[];
   fromIndex: number;
   toIndex: number;
   edgePosition: Edge;

@@ -1,41 +1,35 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { LibraryElement, TimelineElement, VideoMedia } from '../types';
+
 import styled from '@emotion/styled';
 import { DragAndDropWrapper } from './drag-and-drop-wrapper';
 import { css } from '@emotion/react';
 import { Button } from '@/shared/ui/button';
+import { ElementParams, TimelineElement } from '../model/types';
 
 type VideoTimelineElementProps = {
-  media: VideoMedia & TimelineElement;
+  media: TimelineElement & { params: ElementParams };
+  level: number;
   index: number;
-  onRemove: (localId: string) => void;
-  onSelect: (localId: string) => void;
-  isActive: boolean;
 };
 
-export const VideoTimelineElement: React.FC<VideoTimelineElementProps> = ({ media, index, onRemove, isActive, onSelect }) => {
+export const VideoTimelineElement: React.FC<VideoTimelineElementProps> = ({ media, level, index }) => {
   return (
-    <DragAndDropWrapper onRemove={onRemove} onSelect={onSelect} media={media} index={index} isActive={isActive}>
-      <VideoTimelineElementContainer size={Math.max(0, media.size)}>
-        <div>{media.offset}</div>
-        <div>{media.id}</div>
-        <div>{media.duration}</div>
-        <div>{media.localId}</div>
+    <DragAndDropWrapper media={media} index={index} level={level}>
+      <VideoTimelineElementContainer>
+        <Description>{media.index}</Description>
+        <Description>{media.duration}</Description>
+        <Description>{media.localId}</Description>
       </VideoTimelineElementContainer>
     </DragAndDropWrapper>
   );
 };
 
-const VideoTimelineElementContainer = styled.div<{ size: number }>`
+const VideoTimelineElementContainer = styled.div`
   display: flex;
   flex-direction: column;
   height: 100px;
   background-color: pink;
-
-  ${(props) =>
-    props.size &&
-    css`
-      width: ${props.size}px;
-      min-width: ${props.size}px;
-    `};
+`;
+const Description = styled.div`
+  border: 1px solid black;
 `;

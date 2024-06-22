@@ -1,19 +1,16 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
-
 import { VideoLibraryElement } from './video';
-import { ImageLibraryElement } from './image';
-import { createLibraryMediaItems } from '../utils/dataManipulation';
-import { demoLibraryMediaItems } from '../mock';
-
+import { useGate, useUnit } from 'effector-react';
+import { $libraryElementsWithContainer, LibraryGate } from '../model/model.effector';
 export const MediaLibrary = () => {
-  const libraryMediaItems = useMemo(() => createLibraryMediaItems(demoLibraryMediaItems), [demoLibraryMediaItems]);
+  useGate(LibraryGate);
+  const libraryElementsWithContainer = useUnit($libraryElementsWithContainer);
   return (
     <MediaLibraryContainer>
-      {libraryMediaItems.map((media) => {
-        if (media.type === 'VIDEO') return <VideoLibraryElement key={media.id} media={media} />;
-        if (media.type === 'IMAGE') return <ImageLibraryElement key={media.id} media={media} />;
-        return <div>UNKNOWN_MEDIA_ELEMENT</div>;
+      {libraryElementsWithContainer.map((media) => {
+        if (media.type === 'video') return <VideoLibraryElement key={media.id} media={media} />;
+        return <div key={media.id}>UNKNOWN_MEDIA_ELEMENT</div>;
       })}
     </MediaLibraryContainer>
   );

@@ -7,7 +7,7 @@ import { DefaultLayout } from '@/layouts/default';
 
 import { MediaLibrary } from './media-library';
 import { Timeline } from './timeline';
-
+import './model/index';
 export const VideoManagerPage = () => {
   return (
     <DefaultLayout>
