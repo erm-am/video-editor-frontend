@@ -1,9 +1,12 @@
-import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
 import { DropTargetRecord, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
+export type CollisionType = 'out_of_bounds' | 'rectangle_intersection';
+export type Collision = {
+  type: CollisionType;
+  indexes: [number, number];
+};
 
 export type MediaType = 'video' | 'audio' | 'image' | 'text';
 export type ContainerType = 'library' | 'timeline' | 'root';
-
 export type MediaBase = {
   id: string;
   type: MediaType;
@@ -11,7 +14,6 @@ export type MediaBase = {
   index: number;
 };
 export type Media<T> = MediaBase & T;
-
 export type VideoProperties = {
   type: 'video';
   resolution: {
@@ -20,7 +22,6 @@ export type VideoProperties = {
   };
   duration: number;
 };
-
 export type AudioProperties = {
   type: 'audio';
   duration: number;
@@ -70,10 +71,4 @@ export type ExtractedPayloadDragData = {
     horizontal: number;
     position: 'left' | 'right' | 'top' | 'bottom';
   };
-};
-
-type CollisionType = 'NEGATIVE_LEFT_OFFSET' | 'OVERLAP';
-export type Collision = {
-  type: CollisionType;
-  indexes: [number, number];
 };
