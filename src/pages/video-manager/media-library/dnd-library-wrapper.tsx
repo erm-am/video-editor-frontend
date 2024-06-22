@@ -2,29 +2,29 @@ import React, { ReactNode, useEffect, useRef, useState } from 'react';
 import styled from '@emotion/styled';
 import { draggable } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { css } from '@emotion/react';
-import { LibraryMediaElement, VideoLibraryMediaElement } from '../model/types';
+import { LibraryElement } from '../model/types';
 
 type DragAndDropWrapperProps = {
   children: ReactNode;
-  media: LibraryMediaElement;
+  media: LibraryElement;
 };
 export const DndLibraryWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media }) => {
-  const refDragAndDropContainer = useRef();
-  const refDragHandle = useRef();
+  const dragAndDropContainerRef = useRef();
+  const dragHandleRef = useRef();
   const [dragging, setDragging] = useState<boolean>(false);
   useEffect(() => {
     return draggable({
-      element: refDragAndDropContainer.current,
-      dragHandle: refDragHandle.current,
+      element: dragAndDropContainerRef.current,
+      dragHandle: dragHandleRef.current,
       onDragStart: () => setDragging(true),
       onDrop: () => setDragging(false),
       getInitialData: () => media,
     });
   }, []);
   return (
-    <DragAndDropContainer dragging={dragging} ref={refDragAndDropContainer}>
+    <DragAndDropContainer dragging={dragging} ref={dragAndDropContainerRef}>
       {children}
-      <Drag ref={refDragHandle}>111</Drag>
+      <Drag ref={dragHandleRef} />
     </DragAndDropContainer>
   );
 };
@@ -48,7 +48,6 @@ const Drag = styled.div`
   height: 30px;
   position: absolute;
   background: red;
-  cursor: move;
   cursor: grab;
   left: 50%;
   top: 50%;

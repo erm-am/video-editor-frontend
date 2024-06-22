@@ -1,3 +1,4 @@
+import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
 import { DropTargetRecord, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 
 export type MediaType = 'video' | 'audio' | 'image' | 'text';
@@ -33,18 +34,19 @@ export type MediaContainerBase<T extends MediaElement, ContainerName extends Con
   container: ContainerName;
 } & T;
 
-export type VideoLibraryMediaElement = MediaContainerBase<VideoMedia, 'library'>;
-export type AudioLibraryMediaElement = MediaContainerBase<AudioMedia, 'library'>;
-export type VideoTimelineMediaElement = MediaContainerBase<VideoMedia, 'timeline'> & { localId: string };
-export type AudioTimelineMMediaElement = MediaContainerBase<AudioMedia, 'timeline'> & { localId: string };
+export type VideoLibraryElement = MediaContainerBase<VideoMedia, 'library'>;
+export type AudioLibraryElement = MediaContainerBase<AudioMedia, 'library'>;
 
-export type LibraryMediaElement = VideoLibraryMediaElement | AudioLibraryMediaElement;
-export type TimelineMediaElement = VideoTimelineMediaElement | AudioTimelineMMediaElement;
+export type VideoTimelineElement = MediaContainerBase<VideoMedia, 'timeline'> & { localId: string };
+export type AudioTimelineElement = MediaContainerBase<AudioMedia, 'timeline'> & { localId: string };
 
-//
+export type ElementParams = {
+  width: number;
+  offset: number;
+};
 
-///
-///
+export type LibraryElement = VideoLibraryElement | AudioLibraryElement;
+export type TimelineElement = VideoTimelineElement | AudioTimelineElement;
 
 export type ExtractedPayloadDragData = {
   source: {
@@ -63,9 +65,15 @@ export type ExtractedPayloadDragData = {
     library: DropTargetRecord | {};
     root: DropTargetRecord | {};
   };
+  edgePosition: {
+    vertical: number;
+    horizontal: number;
+    position: 'left' | 'right' | 'top' | 'bottom';
+  };
 };
 
-export type MediaParams = {
-  width: number;
-  offset: number;
+type CollisionType = 'NEGATIVE_LEFT_OFFSET' | 'OVERLAP';
+export type Collision = {
+  type: CollisionType;
+  indexes: [number, number];
 };

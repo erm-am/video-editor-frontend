@@ -1,11 +1,10 @@
 import { v4 } from 'uuid';
-// import { InsertMediaOptions, LibraryElement, Media, MediaContainerType, ReorderOptions, TimelineElement, VideoMedia } from '../types';
-// import { extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
 
 import { BaseEventPayload, DropTargetRecord, ElementDragType, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
-import { ExtractedPayloadDragData, TimelineMediaElement } from './types';
+import { Collision, ElementParams, ExtractedPayloadDragData, TimelineElement } from './types';
+import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
 
-export const createTimelineMediaElement = (element): TimelineMediaElement => {
+export const createTimelineMediaElement = (element): TimelineElement => {
   return { ...element, localId: v4(), container: 'timeline' };
 };
 
@@ -15,38 +14,6 @@ export const createRootContainerData = (data) => {
 export const createTimelineContainerData = (data) => {
   return { ...data, container: 'timeline' };
 };
-
-// // Cоздание нового элемента для Timeline на основе любого Media элемента
-// export const createTimelineMediaItem = ({
-//   media,
-//   offset,
-// }: {
-//   media: LibraryElement | TimelineElement;
-//   offset: number;
-// }): TimelineElement => {
-//   //@ts-ignore
-//   if (media.container === MediaContainerType.MEDIA_LIBRARY) {
-//     //@ts-ignore
-//     return { ...media, offset, localId: v4(), container: MediaContainerType.TIMELINE };
-//     //@ts-ignore
-//   } else if (media.container === MediaContainerType.TIMELINE) {
-//     //@ts-ignore
-//     return { ...media, offset, container: MediaContainerType.TIMELINE };
-//   }
-// };
-
-// // Cоздание нового элемента для MediaLibrary на основе любого Media элемента
-// export const createLibraryMediaItem = <T = VideoMedia>(mediaItem: Media, index: number): LibraryElement & T => {
-//   //@ts-ignore
-//   return { ...mediaItem, index, container: MediaContainerType.MEDIA_LIBRARY, changedValues: { duration: { left: 0, right: 0 } } };
-// };
-
-// // Cоздание нескольких MediaLibrary элементов на основе любых Media элементов
-// export const createLibraryMediaItems = (mediaItems: Media[]): LibraryElement[] => {
-//   return mediaItems.map((mediaItem, index) => createLibraryMediaItem(mediaItem, index));
-// };
-
-// Берем только необходимые данные
 
 export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDragType>): ExtractedPayloadDragData => {
   const [topDropTarget] = eventPayload.location.current.dropTargets;
@@ -67,59 +34,17 @@ export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDra
     current: eventPayload.location.current.input,
   };
 
+  const edgePosition = extractEdgePosition(topDropTarget.data as { element: Element; input: Input });
+
   return {
     source,
     target: topDropTarget,
     targets,
-    // edgePosition,
+    edgePosition,
     inputs,
     isMovingToRight: inputs.current.clientX > inputs.initial.clientX,
   };
 };
-
-// // Добавить новый элемент в массив по индексу
-// const insertElement = (array, index, element) => array.toSpliced(index, 0, element);
-
-// // Перестановка элемента по индексу (в завсиимости от edge-line-position и направления)
-// export const reorderElement = (options: ReorderOptions) => {
-//   const { items, fromIndex, toIndex, edgePosition, isMovingToRight } = options;
-//   const result = Array.from(items);
-//   const [removed] = result.splice(fromIndex, 1);
-//   const replaced = items[toIndex];
-//   if (isMovingToRight && edgePosition === 'left') {
-//     const reordered = result.toSpliced(toIndex - 1, 0, { ...removed, offset: replaced.offset - removed.size });
-//     return reordered;
-//   } else if (isMovingToRight && edgePosition === 'right') {
-//     const reordered = result.toSpliced(toIndex, 0, { ...removed, offset: replaced.offset + replaced.size });
-//     return reordered;
-//   } else if (!isMovingToRight && edgePosition === 'left') {
-//     const reordered = result.toSpliced(toIndex, 0, { ...removed, offset: replaced.offset - removed.size });
-//     return reordered;
-//   } else if (!isMovingToRight && edgePosition === 'right') {
-//     const reordered = result.toSpliced(toIndex + 1, 0, { ...removed, offset: replaced.offset + replaced.size });
-//     return reordered;
-//   }
-// };
-
-// // Вставка нового элемента
-// export const insertMediaElement = <T>(options: InsertMediaOptions<T>) => {
-//   // todo types
-//   const { items, targetIndex, edgePosition, insertedMediaItem } = options as any;
-//   if (edgePosition === 'left') {
-//     const currentOffset = (items[targetIndex] as any).offset - insertedMediaItem.duration;
-//     const createdTimelineMediaItem = createTimelineMediaItem({ media: insertedMediaItem, offset: currentOffset });
-//     const result = insertElement(items, targetIndex, createdTimelineMediaItem);
-
-//     return result;
-//   }
-//   if (edgePosition === 'right') {
-//     const leftItemDuration = (items[targetIndex] as any).size + items[targetIndex].offset;
-//     const createdTimelineMediaItem = createTimelineMediaItem({ media: insertedMediaItem, offset: leftItemDuration });
-//     const result = insertElement(items, targetIndex + 1, createdTimelineMediaItem);
-//     return result;
-//   }
-//   return items;
-// };
 
 // // Расположение элемента относительно соседних элементов
 export const getElementPosition = ({ from, to, edgePosition }) => {
@@ -137,8 +62,19 @@ export const getDragRoute = ({ source, target }) => {
   return { from, to };
 };
 
+export const unpackEdgePosition = (edgePosition: { horizontal: number; vertical: number }): 'left' | 'right' | 'top' | 'bottom' => {
+  if (edgePosition.horizontal > 95 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+    return 'right';
+  } else if (edgePosition.horizontal < 5 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+    return 'left';
+  } else if (edgePosition.vertical > 95 && edgePosition.horizontal > 5 && edgePosition.horizontal < 95) {
+    return 'top';
+  } else if (edgePosition.vertical < 5 && edgePosition.horizontal > 5 && edgePosition.horizontal < 95) {
+    return 'bottom';
+  }
+};
+
 export const extractEdgePosition = (data: { element: Element; input: Input }) => {
-  // Переписал под себя эту функцию https://github.com/atlassian/pragmatic-drag-and-drop/blob/93227931c45f69c0a51da7e021f73cc79319b6ed/packages/hitbox/src/closest-edge.ts
   const element = data.element;
   const input = data.input;
   const rect = element.getBoundingClientRect();
@@ -146,9 +82,15 @@ export const extractEdgePosition = (data: { element: Element; input: Input }) =>
     x: input.clientX,
     y: input.clientY,
   };
+
+  const vertical = Math.round(100 / (rect.height / Math.abs(rect.bottom - client.y)));
+  const horizontal = Math.round(100 / (rect.width / Math.abs(client.x - rect.left)));
+
+  const position = unpackEdgePosition({ vertical, horizontal });
   return {
-    vertical: Math.round(100 / (rect.height / Math.abs(rect.bottom - client.y))),
-    horizontal: Math.round(100 / (rect.width / Math.abs(client.x - rect.left))),
+    position,
+    vertical,
+    horizontal,
   };
 };
 
@@ -160,4 +102,124 @@ export const calculateOffsetFromContainerStart = ({ source, target, inputs }) =>
   const moveDistance = currentX - initialX;
   const offset = moveDistance + (sourceLeft - targetLeft);
   return offset;
+};
+
+const detectNegativeOffset = (elements) => {
+  // Поиск коллизий (отрицательная позиция первого элемента)
+  let collisions = [];
+  if (elements.at(0).params.offset < 0) {
+    collisions.push({ type: 'NEGATIVE_LEFT_OFFSET', indexes: [0, -1] });
+  }
+  return collisions;
+};
+
+const detectOverlapCollisions = (elements) => {
+  // Поиск коллизий (две элемента на одной позиции)
+  let collisions = [];
+  for (let i = 0; i < elements.length - 1; i++) {
+    let currentElementEnd = elements[i].params.offset + elements[i].params.width;
+    let nextElementStart = elements[i + 1].params.offset;
+    if (currentElementEnd > nextElementStart) {
+      collisions.push({ type: 'OVERLAP', indexes: [i, i + 1] });
+    }
+  }
+  return collisions;
+};
+
+const detectCollisions = (elements): Collision[] => {
+  // Возвращает список коллизий
+  let collisions = [...detectNegativeOffset(elements), ...detectOverlapCollisions(elements)];
+  return collisions;
+};
+
+export const resolveCollisions = ({ items, isMovingToRight }) => {
+  let collisions = detectCollisions(items);
+  while (collisions.length > 0) {
+    for (const collision of collisions) {
+      const [leftIndex, rightIndex] = collision.indexes;
+      if (collision.type == 'NEGATIVE_LEFT_OFFSET') {
+        items[leftIndex].params.offset = 0; // Возвращаем элемент в самое начало контейнера
+        isMovingToRight = true; // Меняем направление "волны" (проверяем коллизии в противоположную сторону)
+      } else if (collision.type === 'OVERLAP') {
+        const currentElementEnd = items[leftIndex].params.offset + items[leftIndex].params.width;
+        const nextElementStart = items[rightIndex].params.offset;
+        if (isMovingToRight) {
+          items[rightIndex].params.offset = currentElementEnd;
+        } else {
+          items[leftIndex].params.offset = nextElementStart - items[leftIndex].params.width;
+        }
+      }
+    }
+    collisions = detectCollisions(items);
+  }
+  return items;
+};
+
+export const recalculate = ({
+  items,
+  isMovingToRight,
+  reindexMode,
+}: {
+  items: (TimelineElement & {
+    params: ElementParams;
+  })[];
+  isMovingToRight: boolean;
+  reindexMode: 'after' | 'before' | string;
+}) => {
+  if (reindexMode === 'before') {
+    return resolveCollisions({ items: recalculateIndexes(items), isMovingToRight });
+  } else if (reindexMode === 'after') {
+    return recalculateIndexes(resolveCollisions({ items, isMovingToRight }));
+  }
+};
+
+export const recalculateIndexes = (elements) =>
+  elements.toSorted((a, b) => a.params.offset - b.params.offset).map((element, index) => ({ ...element, index }));
+
+///
+
+export const insertElement = (array, index, element) => array.toSpliced(index, 0, element);
+
+export type ReorderOptions = {
+  items: (TimelineElement & {
+    params: ElementParams;
+  })[];
+  fromIndex: number;
+  toIndex: number;
+  edgePosition: Edge;
+  isMovingToRight: boolean;
+};
+export const reorderElement = (options: ReorderOptions) => {
+  const { items, fromIndex, toIndex, edgePosition, isMovingToRight } = options;
+  const result = Array.from(items);
+  const [removed] = result.splice(fromIndex, 1);
+  const replaced = items[toIndex];
+  if (isMovingToRight && edgePosition === 'left') {
+    const reordered = result.toSpliced(toIndex - 1, 0, {
+      ...removed,
+      params: {
+        ...removed.params,
+        offset: replaced.params.offset - removed.params.width,
+      },
+    });
+    return reordered;
+  } else if (isMovingToRight && edgePosition === 'right') {
+    const reordered = result.toSpliced(toIndex, 0, {
+      ...removed,
+      params: { ...removed.params, offset: replaced.params.offset + replaced.params.width },
+    });
+    return reordered;
+  } else if (!isMovingToRight && edgePosition === 'left') {
+    const reordered = result.toSpliced(toIndex, 0, {
+      ...removed,
+      params: { ...removed.params, offset: replaced.params.offset - removed.params.width },
+    });
+    return reordered;
+  } else if (!isMovingToRight && edgePosition === 'right') {
+    const reordered = result.toSpliced(toIndex + 1, 0, {
+      ...removed,
+      params: { ...removed.params, offset: replaced.params.offset + replaced.params.width },
+    });
+    return reordered;
+  }
 };

@@ -1,6 +1,6 @@
 import { MediaElement } from './types';
 
-export const mediaElementsMockData: MediaElement[] = [
+export const libraryElementsMockData: MediaElement[] = [
   {
     resolution: {
       width: 600,

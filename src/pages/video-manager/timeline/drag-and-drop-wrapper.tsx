@@ -1,5 +1,5 @@
 import React, { ReactNode, useEffect, useRef, useState } from 'react';
-import { ImageMedia, LibraryElement, Media, TimelineElement, VideoMedia } from '../types';
+
 import styled from '@emotion/styled';
 import { draggable, dropTargetForElements, monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { attachClosestEdge, Edge, extractClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
@@ -9,14 +9,14 @@ import { css } from '@emotion/react';
 import { Resizer } from './resizer';
 
 import { Button } from '@/shared/ui/button';
-import { MediaParams, TimelineMediaElement } from '../model/types';
+import { ElementParams, TimelineElement } from '../model/types';
 import { createTimelineContainerData, extractEdgePosition, getDragRoute, getElementPosition } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 import { removeMediaElement } from '../model/model.effector';
 
 type DragAndDropWrapperProps = {
   children: ReactNode;
-  media: TimelineMediaElement & { params: MediaParams };
+  media: TimelineElement & { params: ElementParams };
   index: number;
   level: number;
 };
@@ -53,7 +53,13 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
           } else if (currentDragRoute.from === 'timeline.video' && currentDragRoute.to === 'timeline.video') {
             const { isSelf, isNear } = getElementPosition({ from: source.data, to: target.data, edgePosition });
             if (!isSelf && !isNear) {
-              //  setEdgePosition(edgePosition); // todo
+              if (edgePosition.horizontal > 95 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+                setEdgePosition('right');
+              } else if (edgePosition.horizontal < 5 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+                setEdgePosition('left');
+              } else {
+                setEdgePosition(null);
+              }
             }
           }
         },
@@ -64,7 +70,7 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
         },
       }),
     );
-  }, []);
+  }, [index]);
 
   return (
     <DragAndDropContainer

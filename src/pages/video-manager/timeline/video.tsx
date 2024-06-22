@@ -1,13 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { LibraryElement, TimelineElement, VideoMedia } from '../types';
+
 import styled from '@emotion/styled';
 import { DragAndDropWrapper } from './drag-and-drop-wrapper';
 import { css } from '@emotion/react';
 import { Button } from '@/shared/ui/button';
-import { MediaParams, TimelineMediaElement } from '../model/types';
+import { ElementParams, TimelineElement } from '../model/types';
 
 type VideoTimelineElementProps = {
-  media: TimelineMediaElement & { params: MediaParams };
+  media: TimelineElement & { params: ElementParams };
   level: number;
   index: number;
 };
@@ -16,7 +16,7 @@ export const VideoTimelineElement: React.FC<VideoTimelineElementProps> = ({ medi
   return (
     <DragAndDropWrapper media={media} index={index} level={level}>
       <VideoTimelineElementContainer>
-        <Description>{media.id}</Description>
+        <Description>{media.index}</Description>
         <Description>{media.duration}</Description>
         <Description>{media.localId}</Description>
       </VideoTimelineElementContainer>

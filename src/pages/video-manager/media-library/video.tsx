@@ -1,10 +1,10 @@
 import React from 'react';
 import styled from '@emotion/styled';
 import { DndLibraryWrapper } from './dnd-library-wrapper';
-import { VideoLibraryMediaElement } from '../model/types';
+import { LibraryElement } from '../model/types';
 
 type VideoLibraryElementProps = {
-  media: VideoLibraryMediaElement;
+  media: LibraryElement;
 };
 export const VideoLibraryElement: React.FC<VideoLibraryElementProps> = ({ media }) => {
   return (

@@ -1,39 +1,32 @@
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
-import { ImageMedia, LibraryElement, Media, TimelineElement, VideoMedia } from '../types';
+import React, { useEffect, useRef, useState } from 'react';
 import styled from '@emotion/styled';
-import { draggable, dropTargetForElements, monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
-import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge';
+import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';
 import { css } from '@emotion/react';
-
 import { Resizer } from './resizer';
-import { getDragRoute, getElementPosition } from '../utils/dataManipulation';
+
 import { Button } from '@/shared/ui/button';
-import { MediaParams, TimelineMediaElement } from '../model/types';
+import { ElementParams, TimelineElement } from '../model/types';
 import { VideoTimelineElement } from './video';
-import { createTimelineContainerData, extractEdgePosition } from '../model/utils';
+import { createTimelineContainerData, extractEdgePosition, getDragRoute } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
-import { useThrottle } from '@/shared/hooks/use-throttle';
 
 type TimelineGroupProps = {
-  elements: (TimelineMediaElement & { params: MediaParams })[];
+  elements: (TimelineElement & { params: ElementParams })[];
   level: number;
 };
 
 export const TimelineGroup: React.FC<TimelineGroupProps> = ({ elements, level }) => {
   const [edgePosition, setEdgePosition] = useState(null);
   const timelineGroupContainerRef = useRef();
-
   useEffect(() => {
     return combine(
       dropTargetForElements({
         element: timelineGroupContainerRef.current,
-
         onDrag: (eventPayload) => {
           const source = eventPayload.source;
           const target = eventPayload.self;
           const currentDragRoute = getDragRoute({ source, target });
-
           if (currentDragRoute.from === 'library.video' && currentDragRoute.to === 'timeline') {
             const edgePosition = extractEdgePosition(target.data as { element: Element; input: Input });
             if (edgePosition.vertical > 95 && edgePosition.horizontal > 5 && edgePosition.horizontal < 95) {
@@ -52,7 +45,6 @@ export const TimelineGroup: React.FC<TimelineGroupProps> = ({ elements, level })
         },
         onDragLeave: () => setEdgePosition(null),
         onDrop: () => setEdgePosition(null),
-
         getData: ({ element, input }) => {
           return createTimelineContainerData({ level, element, input });
         },
@@ -62,10 +54,9 @@ export const TimelineGroup: React.FC<TimelineGroupProps> = ({ elements, level })
 
   return (
     <TimelineGroupContainer ref={timelineGroupContainerRef}>
-      {elements.map((media: TimelineMediaElement & { params: MediaParams }, index) => {
+      {elements.map((media: TimelineElement & { params: ElementParams }, index) => {
         if (media.type === 'video') return <VideoTimelineElement media={media} index={index} level={level} key={media.localId} />;
       })}
-
       {edgePosition && <Line edgePosition={edgePosition} />}
     </TimelineGroupContainer>
   );
@@ -82,10 +73,8 @@ const TimelineGroupContainer = styled.div`
 const Line = styled.div<{ edgePosition: 'top' | 'bottom' }>`
   height: 10px;
   width: 100%;
-
   position: absolute;
   z-index: 1300;
-
   ${(props) =>
     props.edgePosition === 'top' &&
     css`
@@ -93,7 +82,6 @@ const Line = styled.div<{ edgePosition: 'top' | 'bottom' }>`
       left: 0;
       top: 0;
     `}
-
   ${(props) =>
     props.edgePosition === 'bottom' &&
     css`
