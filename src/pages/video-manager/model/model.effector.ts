@@ -20,7 +20,7 @@ export const $libraryElementsWithContainer: Store<LibraryElement[]> = $libraryEl
   })),
 );
 export const $timelineElements = createStore<{
-  [level: string]: (TimelineElement & { params: ElementParams })[];
+  [level: string]: TimelineElement[];
 }>({});
 
 /// Events
@@ -36,12 +36,12 @@ export const removeMediaElement = createEvent<{ localId: string; level: number }
 // local events
 
 export const updateTimelineElements = createEvent<{
-  timelineElements: (TimelineElement & { params: ElementParams })[];
+  timelineElements: TimelineElement[];
   level: number;
 }>();
-export const insertTimelineElement = createEvent<{ mediaElement: TimelineElement & { params: ElementParams }; level: number }>();
+export const insertTimelineElement = createEvent<{ mediaElement: TimelineElement; level: number }>();
 export const resolveCollisions = createEvent<{
-  timelineElementsByLevel: (TimelineElement & { params: ElementParams })[];
+  timelineElementsByLevel: TimelineElement[];
   level: number;
   isMovingToRight: boolean;
   reindexMode: 'after' | 'before';

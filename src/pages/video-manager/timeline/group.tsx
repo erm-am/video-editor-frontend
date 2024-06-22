@@ -6,13 +6,13 @@ import { css } from '@emotion/react';
 import { Resizer } from './resizer';
 
 import { Button } from '@/shared/ui/button';
-import { ElementParams, TimelineElement } from '../model/types';
+import { TimelineElement } from '../model/types';
 import { VideoTimelineElement } from './video';
 import { createTimelineContainerData, extractEdgePosition, getDragRoute } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 
 type TimelineGroupProps = {
-  elements: (TimelineElement & { params: ElementParams })[];
+  elements: TimelineElement[];
   level: number;
 };
 
@@ -54,7 +54,7 @@ export const TimelineGroup: React.FC<TimelineGroupProps> = ({ elements, level })
 
   return (
     <TimelineGroupContainer ref={timelineGroupContainerRef}>
-      {elements.map((media: TimelineElement & { params: ElementParams }, index) => {
+      {elements.map((media: TimelineElement, index) => {
         if (media.type === 'video') return <VideoTimelineElement media={media} index={index} level={level} key={media.localId} />;
       })}
       {edgePosition && <Line edgePosition={edgePosition} />}

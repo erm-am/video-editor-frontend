@@ -4,10 +4,10 @@ import styled from '@emotion/styled';
 import { DragAndDropWrapper } from './drag-and-drop-wrapper';
 import { css } from '@emotion/react';
 import { Button } from '@/shared/ui/button';
-import { ElementParams, TimelineElement } from '../model/types';
+import { TimelineElement } from '../model/types';
 
 type VideoTimelineElementProps = {
-  media: TimelineElement & { params: ElementParams };
+  media: TimelineElement;
   level: number;
   index: number;
 };

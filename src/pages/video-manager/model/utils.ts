@@ -1,7 +1,7 @@
 import { v4 } from 'uuid';
 
 import { BaseEventPayload, DropTargetRecord, ElementDragType, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
-import { Collision, ElementParams, ExtractedPayloadDragData, TimelineElement } from './types';
+import { Collision, ExtractedPayloadDragData, TimelineElement } from './types';
 import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
 
 export const createTimelineMediaElement = (element): TimelineElement => ({ ...element, localId: v4(), container: 'timeline' });
@@ -143,9 +143,7 @@ export const recalculate = ({
   isMovingToRight,
   reindexMode,
 }: {
-  items: (TimelineElement & {
-    params: ElementParams;
-  })[];
+  items: TimelineElement[];
   isMovingToRight: boolean;
   reindexMode: 'after' | 'before';
 }) => {
@@ -160,9 +158,7 @@ export const recalculateIndexes = (elements) =>
   elements.toSorted((a, b) => a.params.offset - b.params.offset).map((element, index) => ({ ...element, index }));
 
 export type ReorderOptions = {
-  items: (TimelineElement & {
-    params: ElementParams;
-  })[];
+  items: TimelineElement[];
   fromIndex: number;
   toIndex: number;
   edgePosition: Edge;

@@ -1,4 +1,5 @@
 import { DropTargetRecord, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
+
 export type CollisionType = 'out_of_bounds' | 'rectangle_intersection';
 export type Collision = {
   type: CollisionType;
@@ -45,9 +46,10 @@ export type ElementParams = {
   width: number;
   offset: number;
 };
-
 export type LibraryElement = VideoLibraryElement | AudioLibraryElement;
-export type TimelineElement = VideoTimelineElement | AudioTimelineElement;
+export type TimelineElement = (VideoTimelineElement | AudioTimelineElement) & {
+  params: ElementParams;
+};
 
 export type ExtractedPayloadDragData = {
   source: {

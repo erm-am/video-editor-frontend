@@ -9,14 +9,14 @@ import { css } from '@emotion/react';
 import { Resizer } from './resizer';
 
 import { Button } from '@/shared/ui/button';
-import { ElementParams, TimelineElement } from '../model/types';
+import { TimelineElement } from '../model/types';
 import { createTimelineContainerData, extractEdgePosition, getDragRoute, getElementPosition } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 import { removeMediaElement } from '../model/model.effector';
 
 type DragAndDropWrapperProps = {
   children: ReactNode;
-  media: TimelineElement & { params: ElementParams };
+  media: TimelineElement;
   index: number;
   level: number;
 };
