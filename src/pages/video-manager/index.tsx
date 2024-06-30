@@ -4,7 +4,6 @@ import React from 'react';
 import { FileManager } from '@/features/file-manager';
 import { UploadManager } from '@/features/upload-manager';
 import { DefaultLayout } from '@/layouts/default';
-
 import { MediaLibrary } from './media-library';
 import { Timeline } from './timeline';
 import './model/index';

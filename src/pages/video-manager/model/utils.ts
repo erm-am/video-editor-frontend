@@ -1,8 +1,10 @@
 import { v4 } from 'uuid';
 
-import { BaseEventPayload, DropTargetRecord, ElementDragType, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
-import { Collision, ExtractedPayloadDragData, TimelineElement } from './types';
+import { BaseEventPayload, ElementDragType, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
+import { Collision, ExtractedPayloadDragData, ReorderOptions, TimelineElement } from './types';
 import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
+
+// Todo types
 
 export const createTimelineMediaElement = (element): TimelineElement => ({ ...element, localId: v4(), container: 'timeline' });
 export const createRootContainerData = (data) => ({ ...data, container: 'root' });
@@ -10,6 +12,7 @@ export const createTimelineContainerData = (data) => ({ ...data, container: 'tim
 export const insertElement = (array, index, element) => array.toSpliced(index, 0, element);
 
 export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDragType>): ExtractedPayloadDragData => {
+  // Получение данных из drag-event
   const [topDropTarget] = eventPayload.location.current.dropTargets;
   const source = {
     data: eventPayload?.source?.data ?? {},
@@ -25,7 +28,7 @@ export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDra
     initial: eventPayload.location.initial.input,
     current: eventPayload.location.current.input,
   };
-  const edgePosition = extractEdgePosition(topDropTarget.data as { element: Element; input: Input });
+  const edgePosition = getCoordinates(topDropTarget.data as { element: Element; input: Input });
 
   return {
     source,
@@ -37,8 +40,8 @@ export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDra
   };
 };
 
-// Расположение элемента относительно соседних элементов
 export const getElementPosition = ({ from, to, edgePosition }) => {
+  // Расположение элемента относительно соседних элементов
   const isTargetAfterSource = from.index === (to.index as number) - 1;
   const isTargetBeforeSource = from.index === (to.index as number) + 1;
   const isSelf = from.index === to.index;
@@ -46,26 +49,29 @@ export const getElementPosition = ({ from, to, edgePosition }) => {
   return { isTargetAfterSource, isTargetBeforeSource, isSelf, isNear };
 };
 
-// Конвертация "dnd-роута" в текстовое представление
 export const getDragRoute = ({ source, target }) => {
+  // Конвертация "dnd-роута" в текстовое представление
   const from = [source?.data?.container, source?.data?.type, source?.data?.action].filter(Boolean).join('.');
   const to = [target?.data?.container, target?.data?.type, target?.data?.action].filter(Boolean).join('.');
   return { from, to };
 };
 
-export const unpackEdgePosition = (edgePosition: { horizontal: number; vertical: number }): 'left' | 'right' | 'top' | 'bottom' => {
-  if (edgePosition.horizontal > 95 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
-    return 'right';
-  } else if (edgePosition.horizontal < 5 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
-    return 'left';
-  } else if (edgePosition.vertical > 95 && edgePosition.horizontal > 5 && edgePosition.horizontal < 95) {
-    return 'top';
-  } else if (edgePosition.vertical < 5 && edgePosition.horizontal > 5 && edgePosition.horizontal < 95) {
-    return 'bottom';
-  }
+export const getEdgePosition = (coordinates: { horizontal: number; vertical: number }): Edge => {
+  // Алгоритм отображения позиции линии
+  // Игнорируем пересечения на углах
+  const { horizontal, vertical } = coordinates;
+  const isTop = vertical > 95;
+  const isBottom = vertical < 5;
+  const isRight = horizontal > 95;
+  const isLeft = horizontal < 5;
+  if (isRight && !isTop && !isBottom) return 'right';
+  if (isLeft && !isTop && !isBottom) return 'left';
+  if (isTop && !isLeft && !isRight) return 'top';
+  if (isBottom && !isLeft && !isRight) return 'bottom';
 };
 
-export const extractEdgePosition = (data: { element: Element; input: Input }) => {
+export const getCoordinates = (data: { element: Element; input: Input }) => {
+  // Получаем координаты в процентном соотношении + текущую позицию
   const element = data.element;
   const input = data.input;
   const rect = element.getBoundingClientRect();
@@ -73,10 +79,9 @@ export const extractEdgePosition = (data: { element: Element; input: Input }) =>
     x: input.clientX,
     y: input.clientY,
   };
-
   const vertical = Math.round(100 / (rect.height / Math.abs(rect.bottom - client.y)));
   const horizontal = Math.round(100 / (rect.width / Math.abs(client.x - rect.left)));
-  const position = unpackEdgePosition({ vertical, horizontal });
+  const position = getEdgePosition({ vertical, horizontal });
   return {
     position,
     vertical,
@@ -85,6 +90,8 @@ export const extractEdgePosition = (data: { element: Element; input: Input }) =>
 };
 
 export const calculateOffsetFromContainerStart = ({ source, target, inputs }) => {
+  // Вычислить смещение от начала контейнера
+  // Используется в случае, когда переносим элемент из Library в Timeline
   const sourceLeft = source?.element.getBoundingClientRect().left;
   const targetLeft = target?.element.getBoundingClientRect().left;
   const currentX = inputs.current.clientX;
@@ -94,14 +101,16 @@ export const calculateOffsetFromContainerStart = ({ source, target, inputs }) =>
   return offset;
 };
 
-const detectNegativeOffset = (elements) => {
+const detectOutOfBounds = (elements) => {
+  // Формирование списка коллизий (пересечения границы контейнера)
   let collisions = [];
   if (elements.at(0).params.offset < 0) {
     collisions.push({ type: 'out_of_bounds', indexes: [0, -1] });
   }
   return collisions;
 };
-const detectOverlapCollisions = (elements) => {
+const detectRectangleIntersection = (elements) => {
+  // Формирование списка коллизий (пересечения границы прямоугольника)
   let collisions = [];
   for (let i = 0; i < elements.length - 1; i++) {
     let currentElementEnd = elements[i].params.offset + elements[i].params.width;
@@ -113,62 +122,66 @@ const detectOverlapCollisions = (elements) => {
   return collisions;
 };
 
-const detectCollisions = (elements): Collision[] => [...detectNegativeOffset(elements), ...detectOverlapCollisions(elements)];
+const detectCollisions = (elements): Collision[] => {
+  // Поиск коллизий
+  return [...detectOutOfBounds(elements), ...detectRectangleIntersection(elements)];
+};
 
-export const resolveCollisions = ({ items, isMovingToRight }) => {
-  let collisions = detectCollisions(items);
+export const resolveCollisions = ({ elements, isMovingToRight }) => {
+  // Если найдены коллизии, то делаем перерасчет позиций
+  let collisions = detectCollisions(elements);
   while (collisions.length > 0) {
     for (const collision of collisions) {
-      const [leftIndex, rightIndex] = collision.indexes;
+      const [leftElementIndex, rightElementIndex] = collision.indexes;
       if (collision.type == 'out_of_bounds') {
-        items[leftIndex].params.offset = 0; // Возвращаем элемент в самое начало контейнера
+        elements[leftElementIndex].params.offset = 0; // Возвращаем элемент в начало
         isMovingToRight = true; // Меняем направление "волны" (проверяем коллизии в противоположную сторону)
       } else if (collision.type === 'rectangle_intersection') {
-        const currentElementEnd = items[leftIndex].params.offset + items[leftIndex].params.width;
-        const nextElementStart = items[rightIndex].params.offset;
+        const nextElementStartOffset = elements[rightElementIndex].params.offset;
+        const currentElementEndOffset = elements[leftElementIndex].params.offset + elements[leftElementIndex].params.width;
+
         if (isMovingToRight) {
-          items[rightIndex].params.offset = currentElementEnd;
+          elements[rightElementIndex].params.offset = currentElementEndOffset;
         } else {
-          items[leftIndex].params.offset = nextElementStart - items[leftIndex].params.width;
+          elements[leftElementIndex].params.offset = nextElementStartOffset - elements[leftElementIndex].params.width;
         }
       }
     }
-    collisions = detectCollisions(items);
+    collisions = detectCollisions(elements);
   }
-  return items;
+  return elements;
 };
 
 export const recalculate = ({
-  items,
+  elements,
   isMovingToRight,
   reindexMode,
 }: {
-  items: TimelineElement[];
+  elements: TimelineElement[];
   isMovingToRight: boolean;
   reindexMode: 'after' | 'before';
 }) => {
-  if (reindexMode === 'before') {
-    return resolveCollisions({ items: recalculateIndexes(items), isMovingToRight });
-  } else if (reindexMode === 'after') {
-    return recalculateIndexes(resolveCollisions({ items, isMovingToRight }));
-  }
+  // Пересчет offset и index всех элементов
+  if (reindexMode === 'after') return reindex({ elements: resolveCollisions({ elements, isMovingToRight }) });
+  if (reindexMode === 'before') return resolveCollisions({ elements: reindex({ elements }), isMovingToRight });
 };
 
-export const recalculateIndexes = (elements) =>
-  elements.toSorted((a, b) => a.params.offset - b.params.offset).map((element, index) => ({ ...element, index }));
-
-export type ReorderOptions = {
-  items: TimelineElement[];
-  fromIndex: number;
-  toIndex: number;
-  edgePosition: Edge;
-  isMovingToRight: boolean;
+export const reindex = ({ elements }) => {
+  // Переиндексация элементов
+  return elements.toSorted((a, b) => a.params.offset - b.params.offset).map((element, index) => ({ ...element, index }));
 };
+
 export const reorderElement = (options: ReorderOptions) => {
-  const { items, fromIndex, toIndex, edgePosition, isMovingToRight } = options;
-  const result = Array.from(items);
+  // Переупорядочить элемент (зависит от направления и позиции относительно края)
+
+  // 1. Удаление элемента по индексу fromIndex
+  // 2. Перемещение элемента слева или справа от toIndex
+  // 3. Расчет offset перемещеного элемента (зависит от направления и позиции)
+
+  const { elements, fromIndex, toIndex, edgePosition, isMovingToRight } = options;
+  const result = Array.from(elements);
   const [removed] = result.splice(fromIndex, 1);
-  const replaced = items[toIndex];
+  const replaced = elements[toIndex];
   if (isMovingToRight && edgePosition === 'left') {
     const reordered = result.toSpliced(toIndex - 1, 0, {
       ...removed,

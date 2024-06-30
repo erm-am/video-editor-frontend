@@ -8,7 +8,7 @@ import { Resizer } from './resizer';
 import { Button } from '@/shared/ui/button';
 import { TimelineElement } from '../model/types';
 import { VideoTimelineElement } from './video';
-import { createTimelineContainerData, extractEdgePosition, getDragRoute } from '../model/utils';
+import { createTimelineContainerData, getCoordinates, getDragRoute, getElementPosition } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 
 type TimelineGroupProps = {
@@ -27,20 +27,26 @@ export const TimelineGroup: React.FC<TimelineGroupProps> = ({ elements, level })
           const source = eventPayload.source;
           const target = eventPayload.self;
           const currentDragRoute = getDragRoute({ source, target });
+          const coordinates = getCoordinates(target.data as { element: Element; input: Input });
           if (currentDragRoute.from === 'library.video' && currentDragRoute.to === 'timeline') {
-            const edgePosition = extractEdgePosition(target.data as { element: Element; input: Input });
-            if (edgePosition.vertical > 95 && edgePosition.horizontal > 5 && edgePosition.horizontal < 95) {
+            if (coordinates.position === 'top') {
               setEdgePosition('top');
-            } else if (edgePosition.vertical < 5 && edgePosition.horizontal > 5 && edgePosition.horizontal < 95) {
+            } else if (coordinates.position === 'bottom') {
               setEdgePosition('bottom');
             } else {
               setEdgePosition(null);
             }
           } else if (currentDragRoute.from === 'timeline.video' && currentDragRoute.to === 'timeline.video') {
-            // const { isSelf, isNear } = getElementPosition({ from: source.data, to: target.data, edgePosition });
-            // if (!isSelf && !isNear) {
-            //   setEdgePosition(edgePosition);
-            // }
+            const { isSelf, isNear } = getElementPosition({ from: source.data, to: target.data, edgePosition });
+            if (!isSelf && !isNear) {
+              if (coordinates.position === 'top') {
+                setEdgePosition('top');
+              } else if (coordinates.position === 'bottom') {
+                setEdgePosition('bottom');
+              } else {
+                setEdgePosition(null);
+              }
+            }
           }
         },
         onDragLeave: () => setEdgePosition(null),

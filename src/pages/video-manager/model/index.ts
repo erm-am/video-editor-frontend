@@ -13,14 +13,14 @@ import {
   reorderTimelineMediaElement,
   resolveCollisions,
   updateTimelineElements,
-} from './model.effector';
+} from './model';
 import {
   calculateOffsetFromContainerStart,
   createTimelineMediaElement,
   insertElement,
   recalculate,
   reorderElement,
-  unpackEdgePosition,
+  getEdgePosition,
 } from './utils';
 
 import { LibraryElement } from './types';
@@ -72,7 +72,7 @@ sample({
     const source = payload.source.data as LibraryElement;
     const target = payload.target.data;
     const isMovingToRight = payload.isMovingToRight;
-    const edgePosition = unpackEdgePosition(payload.edgePosition);
+    const edgePosition = getEdgePosition(payload.edgePosition);
     const level = (target.level as number) ?? 0;
     const timelineElementsByLevel = timelineElements[level] ?? [];
 
@@ -114,7 +114,6 @@ sample({
 });
 
 //1. timeline.video -> timline
-//2. Смещение
 sample({
   source: {
     timelineElements: $timelineElements,
@@ -144,7 +143,6 @@ sample({
 });
 
 // reorder
-
 sample({
   source: {
     timelineElements: $timelineElements,
@@ -157,7 +155,7 @@ sample({
     const timelineElementsByLevel = timelineElements[level] ?? [];
 
     const reorderedElements = reorderElement({
-      items: timelineElementsByLevel,
+      elements: timelineElementsByLevel,
       edgePosition: payload.edgePosition.position,
       fromIndex: payload.source.data.index as number,
       toIndex: payload.target.data.index as number,
@@ -207,17 +205,16 @@ sample({
   target: resolveCollisions,
 });
 
-// COLLISIONS
 sample({
   clock: resolveCollisions,
   fn(payload) {
     const { timelineElementsByLevel, level, isMovingToRight, reindexMode } = payload;
-    const resolvedElementsByLevel = recalculate({
-      items: timelineElementsByLevel,
+    const recalculatedElements = recalculate({
+      elements: timelineElementsByLevel,
       isMovingToRight,
       reindexMode,
     });
-    return { timelineElements: resolvedElementsByLevel, level };
+    return { timelineElements: recalculatedElements, level };
   },
   target: updateTimelineElements,
 });

@@ -9,7 +9,7 @@ import {
   moveTimelineElementToTimelineContainer,
   moveTimlineMediaElement,
   reorderTimelineMediaElement,
-} from '../model/model.effector';
+} from '../model/model';
 import { useGate, useUnit } from 'effector-react';
 import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine';

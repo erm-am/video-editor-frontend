@@ -10,9 +10,9 @@ import { Resizer } from './resizer';
 
 import { Button } from '@/shared/ui/button';
 import { TimelineElement } from '../model/types';
-import { createTimelineContainerData, extractEdgePosition, getDragRoute, getElementPosition } from '../model/utils';
+import { createTimelineContainerData, getCoordinates, getDragRoute, getElementPosition } from '../model/utils';
 import { Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
-import { removeMediaElement } from '../model/model.effector';
+import { removeMediaElement } from '../model/model';
 
 type DragAndDropWrapperProps = {
   children: ReactNode;
@@ -41,11 +41,11 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
           const source = eventPayload.source;
           const target = eventPayload.self;
           const currentDragRoute = getDragRoute({ source, target });
-          const edgePosition = extractEdgePosition(target.data as { element: Element; input: Input });
+          const coordinates = getCoordinates(target.data as { element: Element; input: Input });
           if (currentDragRoute.from === 'library.video' && currentDragRoute.to === 'timeline.video') {
-            if (edgePosition.horizontal > 95 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+            if (coordinates.position === 'right') {
               setEdgePosition('right');
-            } else if (edgePosition.horizontal < 5 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+            } else if (coordinates.position === 'left') {
               setEdgePosition('left');
             } else {
               setEdgePosition(null);
@@ -53,9 +53,9 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
           } else if (currentDragRoute.from === 'timeline.video' && currentDragRoute.to === 'timeline.video') {
             const { isSelf, isNear } = getElementPosition({ from: source.data, to: target.data, edgePosition });
             if (!isSelf && !isNear) {
-              if (edgePosition.horizontal > 95 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+              if (coordinates.position === 'right') {
                 setEdgePosition('right');
-              } else if (edgePosition.horizontal < 5 && edgePosition.vertical > 5 && edgePosition.vertical < 95) {
+              } else if (coordinates.position === 'left') {
                 setEdgePosition('left');
               } else {
                 setEdgePosition(null);

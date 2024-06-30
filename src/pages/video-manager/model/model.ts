@@ -72,5 +72,5 @@ $timelineElements
     return { ...state, [level]: updatedElements };
   })
   .watch((data) => {
-    console.log('_____timelineElements____', data);
+    console.log('_____timelineElements_____', data);
   });

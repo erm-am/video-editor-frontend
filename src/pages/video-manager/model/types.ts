@@ -1,3 +1,4 @@
+import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
 import { DropTargetRecord, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
 
 export type CollisionType = 'out_of_bounds' | 'rectangle_intersection';
@@ -71,6 +72,14 @@ export type ExtractedPayloadDragData = {
   edgePosition: {
     vertical: number;
     horizontal: number;
-    position: 'left' | 'right' | 'top' | 'bottom';
+    position: Edge;
   };
+};
+
+export type ReorderOptions = {
+  elements: TimelineElement[];
+  fromIndex: number;
+  toIndex: number;
+  edgePosition: Edge;
+  isMovingToRight: boolean;
 };

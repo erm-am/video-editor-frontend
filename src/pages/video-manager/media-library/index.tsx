@@ -2,7 +2,7 @@ import React from 'react';
 import styled from '@emotion/styled';
 import { VideoLibraryElement } from './video';
 import { useGate, useUnit } from 'effector-react';
-import { $libraryElementsWithContainer, LibraryGate } from '../model/model.effector';
+import { $libraryElementsWithContainer, LibraryGate } from '../model/model';
 export const MediaLibrary = () => {
   useGate(LibraryGate);
   const libraryElementsWithContainer = useUnit($libraryElementsWithContainer);
