@@ -1,76 +1,76 @@
-import { Store, combine, createEffect, createEvent, createStore } from 'effector';
+import { createEffect, createEvent, createStore } from 'effector';
 import { createGate } from 'effector-react';
 import { libraryElementsMockData } from './mock';
-import { ExtractedPayloadDragData, LibraryElement, MediaElement, ElementParams, TimelineElement } from './types';
+import {
+  DragDataPayload,
+  InsertTimelineElementPayload,
+  LibraryElement,
+  RemoveMediaElementPayload,
+  ResolveCollisionsPayload,
+  TimelineElement,
+  UpdateTimelineElementsPayload,
+} from './types';
 
 //Gates
+
 export const LibraryGate = createGate('LibraryGate');
 export const TimelineGate = createGate('TimelineGate');
 
 //Effects
+
 export const getLibraryElementsFx = createEffect(() => Promise.resolve(libraryElementsMockData));
 
 //Stores
-export const $libraryElements = createStore<MediaElement[]>([]);
-export const $libraryElementsWithContainer: Store<LibraryElement[]> = $libraryElements.map((libraryElements) =>
-  libraryElements.map((libraryElement, index) => ({
-    ...libraryElement,
-    container: 'library',
-    index,
-  })),
-);
+
+export const $libraryElements = createStore<LibraryElement[]>([]);
 export const $timelineElements = createStore<{
   [level: string]: TimelineElement[];
 }>({});
+export const $sortedTimelineElements = $timelineElements.map((timelineElements) => {
+  return Object.entries(timelineElements).sort(([a], [b]) => parseInt(a) - parseInt(b));
+});
 
-/// Events
-export const moveLibraryElementToRootContainer = createEvent<ExtractedPayloadDragData>(); // library.* -> root
-export const moveLibraryElementToTimelineContainer = createEvent<ExtractedPayloadDragData>(); // library.* -> timeline
-export const moveLibraryElementToTimelineElement = createEvent<ExtractedPayloadDragData>(); // library.* -> timeline.*
-export const moveTimelineElementToTimelineElement = createEvent<ExtractedPayloadDragData>(); // timeline.* -> timeline.*
-export const moveTimelineElementToTimelineContainer = createEvent<ExtractedPayloadDragData>(); // timeline.* -> timeline
-export const moveTimlineMediaElement = createEvent<ExtractedPayloadDragData>(); // timeline.* -> timeline.* (move)
-export const reorderTimelineMediaElement = createEvent<ExtractedPayloadDragData>(); // timeline.* -> timeline.* (roorder)
-export const removeMediaElement = createEvent<{ localId: string; level: number }>(); // remove
+// Ui Events
 
-// local events
+export const moveLibraryElementToRootContainer = createEvent<DragDataPayload>(); // library.* -> root
+export const moveLibraryElementToTimelineContainer = createEvent<DragDataPayload>(); // library.* -> timeline
+export const moveLibraryElementToTimelineElement = createEvent<DragDataPayload>(); // library.* -> timeline.*
+export const moveTimelineElementToTimelineElement = createEvent<DragDataPayload>(); // timeline.* <-> timeline.*
+export const moveTimelineElementToTimelineContainer = createEvent<DragDataPayload>(); // timeline.* -> timeline
+export const moveTimelineMediaElement = createEvent<DragDataPayload>(); // timeline.* <-> timeline.* (move)
+export const reorderTimelineMediaElement = createEvent<DragDataPayload>(); // timeline.* <-> timeline.* (roorder)
+export const removeMediaElement = createEvent<RemoveMediaElementPayload>(); // remove
 
-export const updateTimelineElements = createEvent<{
-  timelineElements: TimelineElement[];
-  level: number;
-}>();
-export const insertTimelineElement = createEvent<{ mediaElement: TimelineElement; level: number }>();
-export const resolveCollisions = createEvent<{
-  timelineElementsByLevel: TimelineElement[];
-  level: number;
-  isMovingToRight: boolean;
-  reindexMode: 'after' | 'before';
-}>();
+// Model events
 
-//Handlers
-$libraryElements.on(getLibraryElementsFx.doneData, (_, mediaLibrary) => mediaLibrary);
+export const updateTimelineElements = createEvent<UpdateTimelineElementsPayload>();
+export const insertTimelineElement = createEvent<InsertTimelineElementPayload>();
+export const resolveCollisions = createEvent<ResolveCollisionsPayload>();
+
+// Handlers
 
 $timelineElements
-  .on(insertTimelineElement, (state, payload) => {
-    const level = payload.level;
-    const mediaElement = payload.mediaElement;
-    if (state[level]) {
-      return { ...state, [level]: [...state[level], mediaElement] };
-    } else {
-      return { ...state, [level]: [mediaElement] };
-    }
-  })
-  .on(updateTimelineElements, (state, payload) => {
-    const level = payload.level;
-    const timelineElements = payload.timelineElements;
-    return { ...state, [level]: timelineElements };
-  })
-  .on(removeMediaElement, (state, payload) => {
-    const localId = payload.localId;
-    const level = payload.level;
-    const updatedElements = state[level].filter((element) => element.localId !== localId);
-    return { ...state, [level]: updatedElements };
-  })
+  .on(insertTimelineElement, (state, { level, mediaElement }) => ({
+    ...state,
+    [level]: [...(state[level] || []), mediaElement],
+  }))
+  .on(updateTimelineElements, (state, { level, timelineElements }) => ({
+    ...state,
+    [level]: timelineElements,
+  }))
+  .on(removeMediaElement, (state, { level, localId }) => ({
+    ...state,
+    [level]: state[level].filter((element) => element.localId !== localId),
+  }))
   .watch((data) => {
-    console.log('_____timelineElements_____', data);
+    console.log('watch:$timelineElements:', data);
   });
+
+moveLibraryElementToRootContainer.watch((data) => console.log('watch:moveLibraryElementToRootContainer', data));
+moveLibraryElementToTimelineContainer.watch((data) => console.log('watch:moveLibraryElementToTimelineContainer', data));
+moveLibraryElementToTimelineElement.watch((data) => console.log('watch:moveLibraryElementToTimelineElement', data));
+moveTimelineElementToTimelineElement.watch((data) => console.log('watch:moveTimelineElementToTimelineElement', data));
+moveTimelineElementToTimelineContainer.watch((data) => console.log('watch:moveTimelineElementToTimelineContainer', data));
+moveTimelineMediaElement.watch((data) => console.log('watch:moveTimelineMediaElement', data));
+reorderTimelineMediaElement.watch((data) => console.log('watch:reorderTimelineMediaElement', data));
+removeMediaElement.watch((data) => console.log('watch:removeMediaElement', data));

@@ -1,13 +1,14 @@
 import React, { useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import {
+  $sortedTimelineElements,
   $timelineElements,
   TimelineGate,
   moveLibraryElementToRootContainer,
   moveLibraryElementToTimelineContainer,
   moveLibraryElementToTimelineElement,
   moveTimelineElementToTimelineContainer,
-  moveTimlineMediaElement,
+  moveTimelineMediaElement,
   reorderTimelineMediaElement,
 } from '../model/model';
 import { useGate, useUnit } from 'effector-react';
@@ -19,13 +20,13 @@ import { createRootContainerData, extractPayloadDragData, getDragRoute, getEleme
 import { TimelineGroup } from './group';
 export const Timeline = () => {
   useGate(TimelineGate);
-  const timelineElements = useUnit($timelineElements);
+  const sortedTimelineElements = useUnit($sortedTimelineElements);
   const timelineContainerRef = useRef();
   useEffect(() => {
     return combine(
       dropTargetForElements({
         element: timelineContainerRef.current,
-        canDrop: () => Object.keys(timelineElements).length === 0,
+        canDrop: () => sortedTimelineElements.length === 0,
         getData: (data) => createRootContainerData(data),
       }),
       monitorForElements({
@@ -48,7 +49,7 @@ export const Timeline = () => {
               edgePosition: extractedDragData.edgePosition.position,
             });
             if (isSelf || isNear) {
-              moveTimlineMediaElement(extractedDragData);
+              moveTimelineMediaElement(extractedDragData);
             } else {
               reorderTimelineMediaElement(extractedDragData);
             }
@@ -59,10 +60,9 @@ export const Timeline = () => {
   }, []);
   return (
     <TimelineMainContainer ref={timelineContainerRef}>
-      {timelineElements &&
-        Object.entries(timelineElements).map(([level, elements]) => {
-          return <TimelineGroup key={level} level={parseInt(level)} elements={elements} />;
-        })}
+      {sortedTimelineElements.map(([level, elements]) => {
+        return <TimelineGroup key={level} level={parseInt(level)} elements={elements} />;
+      })}
     </TimelineMainContainer>
   );
 };

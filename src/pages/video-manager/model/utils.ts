@@ -1,17 +1,17 @@
 import { v4 } from 'uuid';
 
 import { BaseEventPayload, ElementDragType, Input } from '@atlaskit/pragmatic-drag-and-drop/dist/types/internal-types';
-import { Collision, ExtractedPayloadDragData, ReorderOptions, TimelineElement } from './types';
+import { Collision, DragDataPayload, ReorderOptions, TimelineElement } from './types';
 import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
 
-// Todo types
+// Todo types (!)
 
-export const createTimelineMediaElement = (element): TimelineElement => ({ ...element, localId: v4(), container: 'timeline' });
+export const createTimelineElement = (element): TimelineElement => ({ ...element, localId: v4(), container: 'timeline' });
 export const createRootContainerData = (data) => ({ ...data, container: 'root' });
 export const createTimelineContainerData = (data) => ({ ...data, container: 'timeline' });
 export const insertElement = (array, index, element) => array.toSpliced(index, 0, element);
 
-export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDragType>): ExtractedPayloadDragData => {
+export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDragType>): DragDataPayload => {
   // Получение данных из drag-event
   const [topDropTarget] = eventPayload.location.current.dropTargets;
   const source = {
@@ -210,4 +210,11 @@ export const reorderElement = (options: ReorderOptions) => {
     });
     return reordered;
   }
+};
+
+export const applyLevel = (level: number = 0, edgePosition: Edge) => {
+  // Переход на следующий уровень в зависимости от положения Edge
+  if (edgePosition === 'top') return level - 1;
+  if (edgePosition === 'bottom') return level + 1;
+  return level;
 };

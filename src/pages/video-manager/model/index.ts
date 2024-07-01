@@ -8,28 +8,41 @@ import {
   moveLibraryElementToTimelineContainer,
   moveLibraryElementToTimelineElement,
   moveTimelineElementToTimelineContainer,
-  moveTimlineMediaElement,
+  moveTimelineMediaElement,
   moveTimelineElementToTimelineElement,
   reorderTimelineMediaElement,
   resolveCollisions,
   updateTimelineElements,
+  $libraryElements,
 } from './model';
 import {
   calculateOffsetFromContainerStart,
-  createTimelineMediaElement,
+  createTimelineElement,
   insertElement,
   recalculate,
   reorderElement,
   getEdgePosition,
+  applyLevel,
 } from './utils';
-
 import { LibraryElement } from './types';
+import { Edge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/dist/types/types';
 
+// Загрузка страницы
 sample({
   clock: LibraryGate.open,
   target: getLibraryElementsFx,
 });
 
+// Привязываем к контейнеру library
+sample({
+  clock: getLibraryElementsFx.doneData,
+  fn: (elements) => {
+    return elements.map((element, index) => ({ ...element, container: 'library', index } as LibraryElement));
+  },
+  target: $libraryElements,
+});
+
+// Вся логика перемещений
 sample({
   source: {
     timelineElements: $timelineElements,
@@ -37,20 +50,19 @@ sample({
   clock: [moveLibraryElementToRootContainer, moveLibraryElementToTimelineContainer],
 
   fn({ timelineElements }, payload) {
-    const edgePosition = payload.edgePosition;
-
-    const mediaElement = createTimelineMediaElement(payload.source.data);
     const isMovingToRight = payload.isMovingToRight;
+    const mediaElement = createTimelineElement(payload.source.data);
     const offset = calculateOffsetFromContainerStart(payload);
-    const level = (payload.target.data.level as number) ?? 0;
-    const params = {
-      offset: offset,
-      width: mediaElement.duration,
-    };
-
+    const level = applyLevel(payload.target.data.level as number, payload.target.data.edgePosition as Edge);
     const timelineElementsByLevel = timelineElements[level] ?? [];
-    const mediaElementWitchParams = { ...mediaElement, params };
-    const updatedElementsByLevel = timelineElementsByLevel.concat(mediaElementWitchParams);
+    const mediaElementWithParams = {
+      ...mediaElement,
+      params: {
+        offset: offset,
+        width: mediaElement.duration,
+      },
+    };
+    const updatedElementsByLevel = timelineElementsByLevel.concat(mediaElementWithParams);
     return {
       timelineElementsByLevel: updatedElementsByLevel,
       level,
@@ -61,7 +73,6 @@ sample({
   target: resolveCollisions,
 });
 
-//library.* -> library.*
 sample({
   source: {
     timelineElements: $timelineElements,
@@ -78,7 +89,7 @@ sample({
 
     if (edgePosition === 'left') {
       const updatedOffset = timelineElementsByLevel[target.index as number].params.offset - source.duration;
-      const mediaElement = createTimelineMediaElement(payload.source.data);
+      const mediaElement = createTimelineElement(payload.source.data);
       const params = {
         offset: updatedOffset,
         width: mediaElement.duration,
@@ -95,7 +106,7 @@ sample({
       const updatedOffset =
         (timelineElementsByLevel[target.index as number] as any).params.width +
         timelineElementsByLevel[target.index as number].params.offset;
-      const mediaElement = createTimelineMediaElement(payload.source.data);
+      const mediaElement = createTimelineElement(payload.source.data);
       const params = {
         offset: updatedOffset,
         width: mediaElement.duration,
@@ -113,12 +124,11 @@ sample({
   target: resolveCollisions,
 });
 
-//1. timeline.video -> timline
 sample({
   source: {
     timelineElements: $timelineElements,
   },
-  clock: [moveTimelineElementToTimelineContainer, moveTimlineMediaElement],
+  clock: [moveTimelineElementToTimelineContainer, moveTimelineMediaElement],
 
   fn({ timelineElements }, payload) {
     const isMovingToRight = payload.isMovingToRight;
@@ -142,7 +152,6 @@ sample({
   target: resolveCollisions,
 });
 
-// reorder
 sample({
   source: {
     timelineElements: $timelineElements,
@@ -172,7 +181,6 @@ sample({
   target: resolveCollisions,
 });
 
-//timeline.video -> timeline.video
 sample({
   source: {
     timelineElements: $timelineElements,
@@ -180,9 +188,7 @@ sample({
   clock: moveTimelineElementToTimelineElement,
 
   fn({ timelineElements }, payload) {
-    const edgePosition = payload.edgePosition;
-
-    const mediaElement = createTimelineMediaElement(payload.source.data);
+    const mediaElement = createTimelineElement(payload.source.data);
     const isMovingToRight = payload.isMovingToRight;
     const offset = calculateOffsetFromContainerStart(payload);
     const level = (payload.target.data.level as number) ?? 0;
@@ -192,11 +198,11 @@ sample({
     };
 
     const timelineElementsByLevel = timelineElements[level] ?? [];
-    const mediaElementWitchParams = { ...mediaElement, params };
-    const updatedElementsByLevel = timelineElementsByLevel.concat(mediaElementWitchParams);
+    const mediaElementWithParams = { ...mediaElement, params };
+    const updatedElementsByLevel = timelineElementsByLevel.concat(mediaElementWithParams);
     return {
       timelineElementsByLevel: updatedElementsByLevel,
-      mediaElement: mediaElementWitchParams,
+      mediaElement: mediaElementWithParams,
       level,
       isMovingToRight,
       reindexMode: 'before' as const,
@@ -205,6 +211,7 @@ sample({
   target: resolveCollisions,
 });
 
+// Поиск коллизий и переиндексация
 sample({
   clock: resolveCollisions,
   fn(payload) {

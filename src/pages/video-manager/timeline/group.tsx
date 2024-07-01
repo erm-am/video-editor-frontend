@@ -52,11 +52,11 @@ export const TimelineGroup: React.FC<TimelineGroupProps> = ({ elements, level })
         onDragLeave: () => setEdgePosition(null),
         onDrop: () => setEdgePosition(null),
         getData: ({ element, input }) => {
-          return createTimelineContainerData({ level, element, input });
+          return createTimelineContainerData({ level, element, input, edgePosition });
         },
       }),
     );
-  }, []);
+  }, [edgePosition]);
 
   return (
     <TimelineGroupContainer ref={timelineGroupContainerRef}>

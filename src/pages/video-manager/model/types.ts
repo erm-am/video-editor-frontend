@@ -52,7 +52,17 @@ export type TimelineElement = (VideoTimelineElement | AudioTimelineElement) & {
   params: ElementParams;
 };
 
-export type ExtractedPayloadDragData = {
+// Utils
+export type ReorderOptions = {
+  elements: TimelineElement[];
+  fromIndex: number;
+  toIndex: number;
+  edgePosition: Edge;
+  isMovingToRight: boolean;
+};
+
+// Payload
+export type DragDataPayload = {
   source: {
     data: Record<string, unknown>;
     element: {};
@@ -76,10 +86,23 @@ export type ExtractedPayloadDragData = {
   };
 };
 
-export type ReorderOptions = {
-  elements: TimelineElement[];
-  fromIndex: number;
-  toIndex: number;
-  edgePosition: Edge;
+export type UpdateTimelineElementsPayload = {
+  timelineElements: TimelineElement[];
+  level: number;
+};
+export type InsertTimelineElementPayload = {
+  mediaElement: TimelineElement;
+  level: number;
+};
+
+export type ResolveCollisionsPayload = {
+  timelineElementsByLevel: TimelineElement[];
+  level: number;
   isMovingToRight: boolean;
+  reindexMode: 'after' | 'before';
+};
+
+export type RemoveMediaElementPayload = {
+  localId: string;
+  level: number;
 };
