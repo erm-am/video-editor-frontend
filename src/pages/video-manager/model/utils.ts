@@ -11,6 +11,13 @@ export const createRootContainerData = (data) => ({ ...data, container: 'root' }
 export const createTimelineContainerData = (data) => ({ ...data, container: 'timeline' });
 export const insertElement = (array, index, element) => array.toSpliced(index, 0, element);
 
+export const applyLevel = (level: number = 0, edgePosition: Edge) => {
+  // Переход на следующий уровень в зависимости от положения Edge
+  if (edgePosition === 'top') return level - 1;
+  if (edgePosition === 'bottom') return level + 1;
+  return level;
+};
+
 export const extractPayloadDragData = (eventPayload: BaseEventPayload<ElementDragType>): DragDataPayload => {
   // Получение данных из drag-event
   const [topDropTarget] = eventPayload.location.current.dropTargets;
@@ -89,18 +96,6 @@ export const getCoordinates = (data: { element: Element; input: Input }) => {
   };
 };
 
-export const calculateOffsetFromContainerStart = ({ source, target, inputs }) => {
-  // Вычислить смещение от начала контейнера
-  // Используется в случае, когда переносим элемент из Library в Timeline
-  const sourceLeft = source?.element.getBoundingClientRect().left;
-  const targetLeft = target?.element.getBoundingClientRect().left;
-  const currentX = inputs.current.clientX;
-  const initialX = inputs.initial.clientX;
-  const moveDistance = currentX - initialX;
-  const offset = moveDistance + (sourceLeft - targetLeft);
-  return offset;
-};
-
 const detectOutOfBounds = (elements) => {
   // Формирование списка коллизий (пересечения границы контейнера)
   let collisions = [];
@@ -172,7 +167,7 @@ export const reindex = ({ elements }) => {
 };
 
 export const reorderElement = (options: ReorderOptions) => {
-  // Переупорядочить элемент (зависит от направления и позиции относительно края)
+  // Переупорядочить элемент (зависит от направления и позиции края)
 
   // 1. Удаление элемента по индексу fromIndex
   // 2. Перемещение элемента слева или справа от toIndex
@@ -212,9 +207,14 @@ export const reorderElement = (options: ReorderOptions) => {
   }
 };
 
-export const applyLevel = (level: number = 0, edgePosition: Edge) => {
-  // Переход на следующий уровень в зависимости от положения Edge
-  if (edgePosition === 'top') return level - 1;
-  if (edgePosition === 'bottom') return level + 1;
-  return level;
+export const calculateOffsetFromContainerStart = ({ source, target, inputs }) => {
+  // Вычислить смещение от начала контейнера
+  // Используется в случае, когда переносим элемент из Library в Timeline
+  const sourceLeft = source?.element.getBoundingClientRect().left;
+  const targetLeft = target?.element.getBoundingClientRect().left;
+  const currentX = inputs.current.clientX;
+  const initialX = inputs.initial.clientX;
+  const moveDistance = currentX - initialX;
+  const offset = moveDistance + (sourceLeft - targetLeft);
+  return offset;
 };

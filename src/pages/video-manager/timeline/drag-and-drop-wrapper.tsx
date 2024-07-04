@@ -1,4 +1,4 @@
-import React, { ReactNode, useEffect, useRef, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 
 import styled from '@emotion/styled';
 import { draggable, dropTargetForElements, monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter';
@@ -26,6 +26,14 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
   const [edgePosition, setEdgePosition] = useState(null);
   const [dragging, setDragging] = useState(null);
 
+  const updateEdgePosition = useCallback((position: Edge) => {
+    if (position === 'right' || position === 'left') {
+      setEdgePosition(position);
+    } else {
+      setEdgePosition(null);
+    }
+  }, []);
+
   useEffect(() => {
     return combine(
       draggable({
@@ -43,23 +51,11 @@ export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children
           const currentDragRoute = getDragRoute({ source, target });
           const coordinates = getCoordinates(target.data as { element: Element; input: Input });
           if (currentDragRoute.from === 'library.video' && currentDragRoute.to === 'timeline.video') {
-            if (coordinates.position === 'right') {
-              setEdgePosition('right');
-            } else if (coordinates.position === 'left') {
-              setEdgePosition('left');
-            } else {
-              setEdgePosition(null);
-            }
+            updateEdgePosition(coordinates.position);
           } else if (currentDragRoute.from === 'timeline.video' && currentDragRoute.to === 'timeline.video') {
             const { isSelf, isNear } = getElementPosition({ from: source.data, to: target.data, edgePosition });
             if (!isSelf && !isNear) {
-              if (coordinates.position === 'right') {
-                setEdgePosition('right');
-              } else if (coordinates.position === 'left') {
-                setEdgePosition('left');
-              } else {
-                setEdgePosition(null);
-              }
+              updateEdgePosition(coordinates.position);
             }
           }
         },

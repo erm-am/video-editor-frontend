@@ -1,24 +1,24 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { DndLibraryWrapper } from './dnd-library-wrapper';
-import { LibraryElement } from '../model/types';
 
-type VideoLibraryElementProps = {
+import { LibraryElement } from '../model/types';
+import { DragAndDropWrapper } from './drag-and-drop-wrapper';
+
+type VideoElementProps = {
   media: LibraryElement;
 };
-export const VideoLibraryElement: React.FC<VideoLibraryElementProps> = ({ media }) => {
+export const VideoElement: React.FC<VideoElementProps> = ({ media }) => {
   return (
-    <DndLibraryWrapper media={media}>
-      <VideoLibraryElementContainer>
-        <Description>{media.id}</Description>
+    <DragAndDropWrapper media={media}>
+      <VideoElementContainer>
         <Description>{media.type}</Description>
         <Description>{media.duration}</Description>
-      </VideoLibraryElementContainer>
-    </DndLibraryWrapper>
+      </VideoElementContainer>
+    </DragAndDropWrapper>
   );
 };
 
-const VideoLibraryElementContainer = styled.div`
+const VideoElementContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 100px;

@@ -8,28 +8,28 @@ type DragAndDropWrapperProps = {
   children: ReactNode;
   media: LibraryElement;
 };
-export const DndLibraryWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media }) => {
-  const dragAndDropContainerRef = useRef();
+export const DragAndDropWrapper: React.FC<DragAndDropWrapperProps> = ({ children, media }) => {
+  const containerRef = useRef();
   const dragHandleRef = useRef();
-  const [dragging, setDragging] = useState<boolean>(false);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
   useEffect(() => {
     return draggable({
-      element: dragAndDropContainerRef.current,
+      element: containerRef.current,
       dragHandle: dragHandleRef.current,
-      onDragStart: () => setDragging(true),
-      onDrop: () => setDragging(false),
+      onDragStart: () => setIsDragging(true),
+      onDrop: () => setIsDragging(false),
       getInitialData: () => media,
     });
   }, []);
   return (
-    <DragAndDropContainer dragging={dragging} ref={dragAndDropContainerRef}>
+    <Container dragging={isDragging} ref={containerRef}>
       {children}
       <Drag ref={dragHandleRef} />
-    </DragAndDropContainer>
+    </Container>
   );
 };
 
-const DragAndDropContainer = styled.div<{ dragging: boolean }>`
+const Container = styled.div<{ dragging: boolean }>`
   display: flex;
   flex-direction: column;
   position: relative;

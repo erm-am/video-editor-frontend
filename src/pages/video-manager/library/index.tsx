@@ -1,22 +1,24 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { VideoLibraryElement } from './video';
+
 import { useGate, useUnit } from 'effector-react';
 import { $libraryElements, LibraryGate } from '../model/model';
-export const MediaLibrary = () => {
+import { VideoElement } from './video-element';
+export const Library = () => {
   useGate(LibraryGate);
   const libraryElements = useUnit($libraryElements);
   return (
-    <MediaLibraryContainer>
+    <LibraryContainer>
       {libraryElements.map((media) => {
-        if (media.type === 'video') return <VideoLibraryElement key={media.id} media={media} />;
+        if (media.type === 'video') return <VideoElement key={media.id} media={media} />;
+        // if (media.type === 'audio') return <AudioElement key={media.id} media={media} />;
         return <div key={media.id}>UNKNOWN_MEDIA_ELEMENT</div>;
       })}
-    </MediaLibraryContainer>
+    </LibraryContainer>
   );
 };
 
-const MediaLibraryContainer = styled.div`
+const LibraryContainer = styled.div`
   display: flex;
   flex-direction: row;
   border: 1px solid red;

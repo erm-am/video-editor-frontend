@@ -30,6 +30,12 @@ export const $sortedTimelineElements = $timelineElements.map((timelineElements) 
   return Object.entries(timelineElements).sort(([a], [b]) => parseInt(a) - parseInt(b));
 });
 
+export const $maxOffset = $sortedTimelineElements.map((timelineElements) => {
+  const offsets = timelineElements.flatMap(([, elements]) => elements.map(({ params }) => params.width + params.offset));
+  const maxOffset = Math.max(0, ...offsets);
+  return maxOffset;
+});
+
 // Ui Events
 
 export const moveLibraryElementToRootContainer = createEvent<DragDataPayload>(); // library.* -> root
@@ -65,12 +71,3 @@ $timelineElements
   .watch((data) => {
     console.log('watch:$timelineElements:', data);
   });
-
-moveLibraryElementToRootContainer.watch((data) => console.log('watch:moveLibraryElementToRootContainer', data));
-moveLibraryElementToTimelineContainer.watch((data) => console.log('watch:moveLibraryElementToTimelineContainer', data));
-moveLibraryElementToTimelineElement.watch((data) => console.log('watch:moveLibraryElementToTimelineElement', data));
-moveTimelineElementToTimelineElement.watch((data) => console.log('watch:moveTimelineElementToTimelineElement', data));
-moveTimelineElementToTimelineContainer.watch((data) => console.log('watch:moveTimelineElementToTimelineContainer', data));
-moveTimelineMediaElement.watch((data) => console.log('watch:moveTimelineMediaElement', data));
-reorderTimelineMediaElement.watch((data) => console.log('watch:reorderTimelineMediaElement', data));
-removeMediaElement.watch((data) => console.log('watch:removeMediaElement', data));

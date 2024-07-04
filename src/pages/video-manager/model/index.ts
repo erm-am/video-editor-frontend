@@ -33,7 +33,7 @@ sample({
   target: getLibraryElementsFx,
 });
 
-// Привязываем к контейнеру library
+// Привязываем container
 sample({
   clock: getLibraryElementsFx.doneData,
   fn: (elements) => {
@@ -42,7 +42,7 @@ sample({
   target: $libraryElements,
 });
 
-// Вся логика перемещений
+// Логика и математика перемещений
 sample({
   source: {
     timelineElements: $timelineElements,
@@ -51,20 +51,20 @@ sample({
 
   fn({ timelineElements }, payload) {
     const isMovingToRight = payload.isMovingToRight;
-    const mediaElement = createTimelineElement(payload.source.data);
+    const element = createTimelineElement(payload.source.data);
     const offset = calculateOffsetFromContainerStart(payload);
     const level = applyLevel(payload.target.data.level as number, payload.target.data.edgePosition as Edge);
-    const timelineElementsByLevel = timelineElements[level] ?? [];
-    const mediaElementWithParams = {
-      ...mediaElement,
+    const elementsByLevel = timelineElements[level] ?? [];
+    const elementWithParams = {
+      ...element,
       params: {
         offset: offset,
-        width: mediaElement.duration,
+        width: element.duration,
       },
     };
-    const updatedElementsByLevel = timelineElementsByLevel.concat(mediaElementWithParams);
+    const updatedElements = elementsByLevel.concat(elementWithParams);
     return {
-      timelineElementsByLevel: updatedElementsByLevel,
+      timelineElementsByLevel: updatedElements,
       level,
       isMovingToRight,
       reindexMode: 'before' as const,
@@ -85,17 +85,18 @@ sample({
     const isMovingToRight = payload.isMovingToRight;
     const edgePosition = getEdgePosition(payload.edgePosition);
     const level = (target.level as number) ?? 0;
-    const timelineElementsByLevel = timelineElements[level] ?? [];
+    const elementsByLevel = timelineElements[level] ?? [];
 
     if (edgePosition === 'left') {
-      const updatedOffset = timelineElementsByLevel[target.index as number].params.offset - source.duration;
-      const mediaElement = createTimelineElement(payload.source.data);
+      // todo: dry
+      const updatedOffset = elementsByLevel[target.index as number].params.offset - source.duration;
+      const element = createTimelineElement(payload.source.data);
       const params = {
         offset: updatedOffset,
-        width: mediaElement.duration,
+        width: element.duration,
       };
-      const mediaElementWithParams = { ...mediaElement, params };
-      const updatedElements = insertElement(timelineElementsByLevel, target.index, mediaElementWithParams);
+      const elementWithParams = { ...element, params };
+      const updatedElements = insertElement(elementsByLevel, target.index, elementWithParams);
       return {
         timelineElementsByLevel: updatedElements,
         level,
@@ -103,16 +104,15 @@ sample({
         reindexMode: 'before' as const,
       };
     } else if (edgePosition === 'right') {
-      const updatedOffset =
-        (timelineElementsByLevel[target.index as number] as any).params.width +
-        timelineElementsByLevel[target.index as number].params.offset;
-      const mediaElement = createTimelineElement(payload.source.data);
+      // todo: dry
+      const updatedOffset = elementsByLevel[target.index as number].params.width + elementsByLevel[target.index as number].params.offset;
+      const element = createTimelineElement(payload.source.data);
       const params = {
         offset: updatedOffset,
-        width: mediaElement.duration,
+        width: element.duration,
       };
-      const mediaElementWithParams = { ...mediaElement, params };
-      const updatedElements = insertElement(timelineElementsByLevel, (target.index as number) + 1, mediaElementWithParams);
+      const elementWithParams = { ...element, params };
+      const updatedElements = insertElement(elementsByLevel, (target.index as number) + 1, elementWithParams);
       return {
         timelineElementsByLevel: updatedElements,
         level,
@@ -129,19 +129,16 @@ sample({
     timelineElements: $timelineElements,
   },
   clock: [moveTimelineElementToTimelineContainer, moveTimelineMediaElement],
-
   fn({ timelineElements }, payload) {
     const isMovingToRight = payload.isMovingToRight;
     const level = (payload.target.data.level as number) ?? 0;
-    const timelineElementsByLevel = timelineElements[level] ?? [];
-
-    const updatedElements = timelineElementsByLevel.map((timelineMediaItem) => {
+    const elementsByLevel = timelineElements[level] ?? [];
+    const updatedElements = elementsByLevel.map((element) => {
       const moveDistance = payload.inputs.current.clientX - payload.inputs.initial.clientX;
-      const updatedOffset = timelineMediaItem.params.offset + moveDistance;
-      const params = { ...timelineMediaItem.params, offset: updatedOffset };
-      return timelineMediaItem.localId === payload.source.data.localId ? { ...timelineMediaItem, params } : timelineMediaItem;
+      const updatedOffset = element.params.offset + moveDistance;
+      const params = { ...element.params, offset: updatedOffset };
+      return element.localId === payload.source.data.localId ? { ...element, params } : element;
     });
-
     return {
       timelineElementsByLevel: updatedElements,
       level,
@@ -161,10 +158,10 @@ sample({
   fn({ timelineElements }, payload) {
     const isMovingToRight = payload.isMovingToRight;
     const level = (payload.target.data.level as number) ?? 0;
-    const timelineElementsByLevel = timelineElements[level] ?? [];
+    const elementsByLevel = timelineElements[level] ?? [];
 
     const reorderedElements = reorderElement({
-      elements: timelineElementsByLevel,
+      elements: elementsByLevel,
       edgePosition: payload.edgePosition.position,
       fromIndex: payload.source.data.index as number,
       toIndex: payload.target.data.index as number,
@@ -188,21 +185,21 @@ sample({
   clock: moveTimelineElementToTimelineElement,
 
   fn({ timelineElements }, payload) {
-    const mediaElement = createTimelineElement(payload.source.data);
+    const element = createTimelineElement(payload.source.data);
     const isMovingToRight = payload.isMovingToRight;
     const offset = calculateOffsetFromContainerStart(payload);
     const level = (payload.target.data.level as number) ?? 0;
     const params = {
       offset: offset,
-      width: mediaElement.duration,
+      width: element.duration,
     };
 
-    const timelineElementsByLevel = timelineElements[level] ?? [];
-    const mediaElementWithParams = { ...mediaElement, params };
-    const updatedElementsByLevel = timelineElementsByLevel.concat(mediaElementWithParams);
+    const elementsByLevel = timelineElements[level] ?? [];
+    const elementWithParams = { ...element, params };
+    const updatedElements = elementsByLevel.concat(elementWithParams);
     return {
-      timelineElementsByLevel: updatedElementsByLevel,
-      mediaElement: mediaElementWithParams,
+      timelineElementsByLevel: updatedElements,
+      mediaElement: elementWithParams,
       level,
       isMovingToRight,
       reindexMode: 'before' as const,

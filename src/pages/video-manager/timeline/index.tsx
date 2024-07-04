@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import styled from '@emotion/styled';
 import {
+  $maxOffset,
   $sortedTimelineElements,
-  $timelineElements,
   TimelineGate,
   moveLibraryElementToRootContainer,
   moveLibraryElementToTimelineContainer,
@@ -21,6 +21,7 @@ import { TimelineGroup } from './group';
 export const Timeline = () => {
   useGate(TimelineGate);
   const sortedTimelineElements = useUnit($sortedTimelineElements);
+  const maxOffset = useUnit($maxOffset);
   const timelineContainerRef = useRef();
   useEffect(() => {
     return combine(
@@ -59,15 +60,15 @@ export const Timeline = () => {
     );
   }, []);
   return (
-    <TimelineMainContainer ref={timelineContainerRef}>
+    <TimelineContainer ref={timelineContainerRef}>
       {sortedTimelineElements.map(([level, elements]) => {
-        return <TimelineGroup key={level} level={parseInt(level)} elements={elements} />;
+        return <TimelineGroup maxOffset={maxOffset} key={level} level={parseInt(level)} elements={elements} />;
       })}
-    </TimelineMainContainer>
+    </TimelineContainer>
   );
 };
 
-const TimelineMainContainer = styled.div`
+const TimelineContainer = styled.div`
   display: flex;
   flex-direction: column;
   width: 800px;

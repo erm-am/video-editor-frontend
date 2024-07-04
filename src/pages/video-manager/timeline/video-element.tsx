@@ -6,28 +6,27 @@ import { css } from '@emotion/react';
 import { Button } from '@/shared/ui/button';
 import { TimelineElement } from '../model/types';
 
-type VideoTimelineElementProps = {
+type VideoElementProps = {
   media: TimelineElement;
   level: number;
   index: number;
 };
 
-export const VideoTimelineElement: React.FC<VideoTimelineElementProps> = ({ media, level, index }) => {
+export const VideoElement: React.FC<VideoElementProps> = ({ media, level, index }) => {
   return (
     <DragAndDropWrapper media={media} index={index} level={level}>
-      <VideoTimelineElementContainer>
+      <VideoElementContainer>
         <Description>{media.index}</Description>
         <Description>{media.duration}</Description>
-        <Description>{media.localId}</Description>
-      </VideoTimelineElementContainer>
+      </VideoElementContainer>
     </DragAndDropWrapper>
   );
 };
 
-const VideoTimelineElementContainer = styled.div`
+const VideoElementContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: 100px;
+  height: 40px;
   background-color: pink;
 `;
 const Description = styled.div`

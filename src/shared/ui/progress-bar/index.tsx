@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React from 'react';
 
 import styled from '@emotion/styled';
 
@@ -20,7 +20,7 @@ const ProgressBarContainer = styled.div`
   background-color: #d7d7d7;
 `;
 
-const Progress = styled.div<Pick<ProgressBarProps, 'progress'>>`
+const Progress = styled.div<ProgressBarProps>`
   height: 100%;
   width: ${({ progress }) => progress}%;
   background-color: #4bbd37;

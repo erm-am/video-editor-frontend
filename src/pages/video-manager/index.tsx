@@ -1,26 +1,21 @@
 import styled from '@emotion/styled';
 import React from 'react';
-
-import { FileManager } from '@/features/file-manager';
-import { UploadManager } from '@/features/upload-manager';
 import { DefaultLayout } from '@/layouts/default';
-import { MediaLibrary } from './media-library';
 import { Timeline } from './timeline';
+import { Library } from './library';
 import './model/index';
 export const VideoManagerPage = () => {
   return (
     <DefaultLayout>
-      <VideoManagerPageContainer>
-        <FileManager />
-        <UploadManager />
-        <MediaLibrary />
+      <VideoManager>
+        <Library />
         <Timeline />
-      </VideoManagerPageContainer>
+      </VideoManager>
     </DefaultLayout>
   );
 };
 
-const VideoManagerPageContainer = styled.div`
+const VideoManager = styled.div`
   display: flex;
   flex-direction: column;
   border: 1px solid red;

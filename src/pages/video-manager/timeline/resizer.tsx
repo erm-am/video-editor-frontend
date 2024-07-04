@@ -24,8 +24,8 @@ export const Resizer = ({ media, isActive }) => {
   return (
     <ResizerContainer>
       <ResizerActions isActive={isActive}>
-        <Left ref={leftRef} />
-        <Right ref={rightRef} />
+        <SideHandle ref={leftRef} position="left" />
+        <SideHandle ref={rightRef} position="right" />
       </ResizerActions>
     </ResizerContainer>
   );
@@ -58,22 +58,12 @@ const ResizerContainer = styled.div`
   }
 `;
 
-const Left = styled.div`
+const SideHandle = styled.div<{ position: 'left' | 'right' }>`
   width: 12px;
   top: 0;
-  left: 0;
   height: 100%;
   background-color: #3fa3ff;
   position: absolute;
   cursor: col-resize;
-`;
-
-const Right = styled.div`
-  width: 12px;
-  top: 0;
-  right: 0;
-  height: 100%;
-  background-color: #3fa3ff;
-  position: absolute;
-  cursor: col-resize;
+  ${({ position }) => position}: 0;
 `;

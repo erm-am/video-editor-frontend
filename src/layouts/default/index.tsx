@@ -1,15 +1,12 @@
 import React from 'react';
 import styled from '@emotion/styled';
-import { SidebarMenu } from '@/features/sidebar-menu';
 
 export const DefaultLayout = ({ children }) => {
   return (
     <Page>
-      <Header>...</Header>
+      <Header />
       <Container>
-        <Sidebar>
-          <SidebarMenu />
-        </Sidebar>
+        <Sidebar></Sidebar>
         <Content>{children}</Content>
       </Container>
     </Page>

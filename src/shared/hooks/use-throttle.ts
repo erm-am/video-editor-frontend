@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 
-export const useThrottle = (fn, delay, dependence) => {
+export const useThrottle = (fn, delay, dependencyList) => {
   const ref = useRef({ lastTime: 0 });
   return useCallback((...args) => {
     const now = Date.now();
@@ -9,7 +9,5 @@ export const useThrottle = (fn, delay, dependence) => {
       fn(...args);
       ref.current.lastTime = now;
     }
-  }, dependence);
+  }, dependencyList);
 };
-
-//  const handleClick = useThrottle(() => setCount(count + 1), 500, [count]);
